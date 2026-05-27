@@ -1,0 +1,15 @@
+{
+  "name": "ruby-programming",
+  "owner": {
+    "name": "Jon Grenning",
+    "email": "jtgrenz@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "ruby-programming",
+      "source": "./",
+      "description": "Ruby design pattern recognition, quality enforcement, and structured development workflows.",
+      "version": "0.1.0"
+    }
+  ]
+}
