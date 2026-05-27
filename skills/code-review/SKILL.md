@@ -1,12 +1,11 @@
 ---
 name: code-review
-description: Use when reviewing Ruby code, PRs, or local changes. Enhances standard code review with design shape analysis, connascence evaluation, and the quality checklist. Runs the ruby verifier in parallel with the standard reviewer.
-disable-model-invocation: true
+description: Use when reviewing Ruby code, PRs, or local changes. Wraps the built-in /code-review with design shape analysis, connascence evaluation, and the Ruby quality checklist. One command for the full review.
 ---
 
 # Ruby Code Review
 
-Design-aware code review for Ruby. Runs a standard structural review AND a Ruby-specific design review in parallel, then merges findings.
+Full code review for Ruby: structural scan + design analysis + quality checklist. Wraps the built-in `/code-review` and adds a Ruby-specific design layer on top.
 
 ## Process
 
@@ -17,7 +16,7 @@ Determine the review target from the user's request:
 - Local changes → use `git diff` (staged + unstaged)
 - Specific files → read them directly
 
-### Step 2: Design Pass (BEFORE syntax/structural review)
+### Step 2: Design Pass (do this FIRST, before the structural scan)
 
 Read these references once:
 - `${SKILL_DIR}/../ruby-programming/references/design-shapes.md`
@@ -37,11 +36,11 @@ Then review the diff with design eyes:
 - Don't assume the reader knows SOLID, connascence, or design shapes — treat every term as new on first use
 - Wrap the design analysis in a `<details>` block when posting to GitHub so it doesn't overwhelm the practical feedback
 
-### Step 3: Dispatch Dual Review
+### Step 3: Run Structural Scan + Ruby Verifier (in parallel)
 
-Run BOTH of these in parallel:
+After completing YOUR design pass, kick off both of these:
 
-**Standard code review** — If `code-review:code-review` or `superpowers:requesting-code-review` is available, invoke it. Otherwise, review for: file responsibility, plan compliance, method length, test coverage, error handling.
+**Structural scan** — Invoke the built-in `code-review` skill via the Skill tool. Pass the PR number or relevant args. This runs the 5-agent parallel scan (CLAUDE.md compliance, bug scan, git history, prior PRs, code comments).
 
 **Ruby verifier** — Dispatch a `general-purpose` background agent with this prompt:
 
@@ -72,13 +71,13 @@ against the quality checklist that follows.
 
 Read the quality checklist file once at the start and reuse for each dispatch.
 
-### Step 4: Merge and Present
+### Step 4: Present Findings
 
-Combine findings from the design pass, standard review, and ruby verifier into a single review. Organize by severity:
+Combine findings from ALL three layers. Organize by severity:
 
-1. **Design concerns** (shapes, connascence, SOLID violations) — these are architectural and should be addressed before merging
-2. **Quality findings** (from the verifier checklist) — mechanical issues that should be fixed
-3. **Structural observations** (from the standard review) — file organization, test coverage gaps
+1. **Design concerns** (from your design pass — shapes, connascence, SOLID) — architectural issues
+2. **Correctness issues** (from the structural scan — bugs, CLAUDE.md violations, historical context) — ship-blocking issues
+3. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — mechanical issues
 
 When writing for a GitHub PR, wrap the design analysis in a collapsible block:
 ```markdown
@@ -93,5 +92,4 @@ When writing for a GitHub PR, wrap the design analysis in a collapsible block:
 ## What This Skill Does NOT Do
 
 - Does not write code (suggest changes, don't implement them)
-- Does not replace the standard reviewer (it supplements with Ruby-specific design analysis)
 - Does not recommend patterns without checking threshold gates

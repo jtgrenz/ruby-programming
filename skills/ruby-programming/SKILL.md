@@ -1,5 +1,5 @@
 ---
-name: ruby-programming
+name: ruby-guidelines
 description: Use when writing, reviewing, or refactoring Ruby code, Rails controllers, ActiveRecord models, RSpec specs, service objects, or background jobs. Also use when reviewing PRs that contain Ruby changes. Triggers on Ruby, Rails, RSpec, ActiveRecord, Sorbet, RuboCop, Sidekiq, Puma.
 ---
 
