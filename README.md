@@ -46,10 +46,10 @@ Start a new Claude Code session. You should see these skills available:
 
 | Skill | Type | Trigger |
 |-------|------|---------|
-| `ruby-programming` | Ambient | Auto-loads when working with Ruby code |
-| `brainstorm` | Invokeable | `/ruby-programming:brainstorm` or when designing Ruby features |
-| `execute-plan` | Invokeable | `/ruby-programming:execute-plan` or when executing Ruby implementation plans |
-| `code-review` | Invokeable | `/ruby-programming:code-review` or when reviewing Ruby PRs/changes |
+| `ruby-guidelines` | Ambient | Auto-loads when working with Ruby code |
+| `brainstorm` | Invokeable | `/ruby-programming:brainstorm` |
+| `execute-plan` | Invokeable | `/ruby-programming:execute-plan` |
+| `code-review` | Invokeable | `/ruby-programming:code-review` |
 
 ## What it does
 
@@ -78,8 +78,11 @@ The execute-plan skill enforces:
 2. **Pre-flight sweep**: Mechanical checklist before submitting (T.must comments, no T.untyped, keyword args, methods under 15 lines, etc.)
 3. **Simplicity check**: "Is there a simpler way to express this?" for each method.
 
-## Compatibility
+## How the skills compose
 
-- Works standalone or alongside [superpowers](https://github.com/superpowers-ai/superpowers)
-- When superpowers is available, brainstorm and execute-plan compose with it (enhance, not replace)
-- When superpowers is not available, each skill has a standalone fallback path
+- **`ruby-guidelines`** (ambient) auto-loads design shapes and vocabulary into every Ruby session
+- **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis and threshold gates
+- **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, pre-flight sweep, and the ruby verifier
+- **`code-review`** does a design pass (shapes, connascence, SOLID), dispatches the ruby verifier, and invokes the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
+
+All skills work standalone if superpowers isn't installed — they have fallback paths.

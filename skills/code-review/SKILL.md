@@ -1,11 +1,11 @@
 ---
 name: code-review
-description: Use when reviewing Ruby code, PRs, or local changes. Wraps the built-in /code-review with design shape analysis, connascence evaluation, and the Ruby quality checklist. One command for the full review.
+description: Use when reviewing Ruby code, PRs, or local changes. Adds design shape analysis, connascence evaluation, and the Ruby quality checklist. Run alongside /code-review for full coverage.
 ---
 
 # Ruby Code Review
 
-Full code review for Ruby: structural scan + design analysis + quality checklist. Wraps the built-in `/code-review` and adds a Ruby-specific design layer on top.
+Design-focused code review for Ruby. Checks design shapes, threshold gates, connascence, and runs the quality checklist. Complements the built-in `/code-review` (structural scan) — run both for full coverage.
 
 ## Process
 
@@ -36,11 +36,9 @@ Then review the diff with design eyes:
 - Don't assume the reader knows SOLID, connascence, or design shapes — treat every term as new on first use
 - Wrap the design analysis in a `<details>` block when posting to GitHub so it doesn't overwhelm the practical feedback
 
-### Step 3: Run Structural Scan + Ruby Verifier (in parallel)
+### Step 3: Run Ruby Verifier
 
-After completing YOUR design pass, kick off both of these:
-
-**Structural scan** — Invoke the built-in `code-review` skill via the Skill tool. Pass the PR number or relevant args. This runs the 5-agent parallel scan (CLAUDE.md compliance, bug scan, git history, prior PRs, code comments).
+After completing the design pass, dispatch the Ruby verifier for mechanical quality checks:
 
 **Ruby verifier** — Dispatch a `general-purpose` background agent with this prompt:
 
@@ -76,8 +74,9 @@ Read the quality checklist file once at the start and reuse for each dispatch.
 Combine findings from ALL three layers. Organize by severity:
 
 1. **Design concerns** (from your design pass — shapes, connascence, SOLID) — architectural issues
-2. **Correctness issues** (from the structural scan — bugs, CLAUDE.md violations, historical context) — ship-blocking issues
-3. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — mechanical issues
+2. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — mechanical issues
+
+**Remind the user:** "For the structural scan (bugs, CLAUDE.md compliance, git history), also run `/code-review`."
 
 When writing for a GitHub PR, wrap the design analysis in a collapsible block:
 ```markdown
