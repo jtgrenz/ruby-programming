@@ -40,16 +40,16 @@ Start a new Claude Code session. You should see these skills available:
 - `ruby-programming:ruby-programming` (ambient — auto-loads for Ruby work)
 - `ruby-programming:brainstorm`
 - `ruby-programming:execute-plan`
-- `ruby-programming:code-review`
+- `ruby-programming:ruby-review`
 
 ## Skills
 
 | Skill | Type | Trigger |
 |-------|------|---------|
-| `ruby-guidelines` | Ambient | Auto-loads when working with Ruby code |
+| `ruby-programming` | Ambient | Auto-loads when working with Ruby code |
 | `brainstorm` | Invokeable | `/ruby-programming:brainstorm` |
 | `execute-plan` | Invokeable | `/ruby-programming:execute-plan` |
-| `code-review` | Invokeable | `/ruby-programming:code-review` |
+| `ruby-review` | Invokeable | `/ruby-programming:ruby-review` |
 
 ## What it does
 
@@ -69,7 +69,7 @@ All terms are explained with parenthetical definitions on first use — the skil
 
 ### Quality Checklist
 
-A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier agent during execute-plan, and by code-review for PR feedback.
+A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier agent during execute-plan, and by ruby-review for PR feedback.
 
 ### Shameless Green + Pre-flight Sweep
 
@@ -80,9 +80,9 @@ The execute-plan skill enforces:
 
 ## How the skills compose
 
-- **`ruby-guidelines`** (ambient) auto-loads design shapes and vocabulary into every Ruby session
+- **`ruby-programming`** (ambient) auto-loads design shapes and vocabulary into every Ruby session
 - **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis and threshold gates
 - **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, pre-flight sweep, and the ruby verifier
-- **`code-review`** does a design pass (shapes, connascence, SOLID), dispatches the ruby verifier, and invokes the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
+- **`ruby-review`** does a design pass (shapes, connascence, SOLID), dispatches the ruby verifier, and complements the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
