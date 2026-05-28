@@ -24,9 +24,10 @@ For each unit of work, cycle through these stages. The code starts simple and en
 ### 1. Design
 Before writing anything: What messages need to be sent? What are the dependencies? Object or data structure? Sketch the public interface in your head, not the implementation.
 
-**Design analysis** — read `references/design-shapes.md` and `references/design-vocabulary.md`, then answer:
+**Design analysis** — read `references/design-shapes.md`, `references/design-vocabulary.md`, and `references/sorbet-patterns.md`, then answer:
 - What are the **axes of change**? What varies independently?
 - Does the problem shape match any **shape trigger**? If yes, name the pattern and recommend it with rationale.
+- Which **Sorbet type tool** expresses this design? Check the sorbet-patterns triggers against the proposed interface.
 - Where are the **seams** — points where future behavior changes without editing in place?
 - If no pattern fits, state why: "No shape triggers match because [reason]."
 
@@ -54,10 +55,11 @@ Now improve the code. Two passes — mechanical first, then design.
 
 Each improvement is a separate change. If you can't describe it in five words, it's more than one change.
 
-**Design pass** — after mechanical cleanup, step back and read `references/design-shapes.md`:
+**Design pass** — after mechanical cleanup, step back and read `references/design-shapes.md` and `references/sorbet-patterns.md`:
 - Did the shameless green reveal a **shape** that wasn't visible in the spec?
 - Apply the **deletion test** to any extraction: does complexity vanish or reappear across callers?
 - Is each module **deep** (absorbing complexity) or **shallow** (adding indirection)?
+- Does the code now match a **sorbet type trigger**? (e.g., closed variants → `sealed!`, factory method → `T.attached_class`, callback block → `T.bind`)
 - Name the pattern if one emerged. If you're recommending an extraction, state which shape trigger justifies it.
 
 ### 5. Next test
