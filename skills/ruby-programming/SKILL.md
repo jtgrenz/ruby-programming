@@ -126,6 +126,8 @@ The loop exits when the verifier returns zero new FAILs. Then ask: *is this the 
 
 ## Sorbet & Types
 
+For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.), read `references/sorbet-patterns.md`.
+
 - **Default to `typed: strict` for new files.** This means `T.sig` on every method — Sorbet enforces it. Match the existing typing level when modifying existing files.
 - **Use `T::Struct` for data** (input parameters, value objects, config). Use classes with `extend T::Sig` for behavior (service objects, domain logic).
 - **Express duck types as `T::Interface`.** Same principle (behavior over class), statically verified.
@@ -134,6 +136,8 @@ The loop exits when the verifier returns zero new FAILs. Then ask: *is this the 
 - **Use `T.unsafe` sparingly.** Document WHY with an inline comment every time.
 - **`T.must` is a code smell.** It's a "trust me bro" contract that suppresses nilability warnings without handling the nil case. Too often developers add `T.must` because a value *shouldn't* be nil — but it can be, and `T.must` just converts a type error into a runtime crash. Before using `T.must`, prove the value truly cannot be nil. If it CAN be nil, handle it explicitly (`raise` with context, return early, use a default). Only use `T.must` when Sorbet's type narrowing has a genuine blind spot and you can articulate why nil is impossible.
 - **Abstract base classes are fine** when using `T::AbstractUtils` — they serve as enforced contracts.
+- **Don't overload T::Enum with metadata.** Enums are dumb identifiers. If variants need per-variant data or behavior, use `sealed!` + `T::Struct` variants instead.
+- **Use `sealed!` for sum types** where each variant carries different data. Use `T.absurd` in the else branch for exhaustiveness.
 
 ## Error Handling
 
