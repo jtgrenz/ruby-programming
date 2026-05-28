@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: ruby-review
 description: Use when reviewing Ruby code, PRs, or local changes. Adds design shape analysis, connascence evaluation, and the Ruby quality checklist. Run alongside /code-review for full coverage.
 allowed-tools: Bash(gh pr view *), Bash(gh pr diff *), Bash(gh api *), Bash(command git diff *), Bash(command git log *), Bash(command git blame *), Read, Grep, Glob, Agent
 ---
