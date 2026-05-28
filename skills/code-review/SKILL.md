@@ -1,6 +1,7 @@
 ---
 name: code-review
 description: Use when reviewing Ruby code, PRs, or local changes. Adds design shape analysis, connascence evaluation, and the Ruby quality checklist. Run alongside /code-review for full coverage.
+allowed-tools: Bash(gh pr view *), Bash(gh pr diff *), Bash(gh api *), Bash(command git diff *), Bash(command git log *), Bash(command git blame *), Read, Grep, Glob, Agent
 ---
 
 # Ruby Code Review
@@ -12,9 +13,12 @@ Design-focused code review for Ruby. Checks design shapes, threshold gates, conn
 ### Step 1: Identify What to Review
 
 Determine the review target from the user's request:
-- A PR number → use `gh pr diff <number>` to get the diff
-- Local changes → use `git diff` (staged + unstaged)
+- A GitHub PR URL (e.g. `https://github.com/Gusto/zenpayroll/pull/1234`) → extract the owner, repo, and PR number from the URL, then use `gh pr diff <number> --repo <owner>/<repo>` to get the diff
+- A PR number → use `gh pr diff <number>` to get the diff (uses current repo context)
+- Local changes (current branch) → use `command git diff main...HEAD` to capture all commits on the branch, then also `command git diff` for any uncommitted work. Combine both diffs for the full picture.
 - Specific files → read them directly
+
+**URL detection is critical.** If the argument contains `github.com` and `/pull/`, always treat it as a remote PR review — never fall through to local changes.
 
 ### Step 2: Design Pass (do this FIRST, before the structural scan)
 
