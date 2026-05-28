@@ -15,6 +15,7 @@ Structured design exploration with Ruby-specific pattern recognition. Enhances t
 Read these before doing anything else:
 - `${SKILL_DIR}/../ruby-programming/references/design-shapes.md` — 12 shape triggers
 - `${SKILL_DIR}/../ruby-programming/references/design-vocabulary.md` — terms, connascence, rejected framings
+- `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md` — when to refactor existing code before starting TDD
 
 ### Step 2: Brainstorm Process
 
@@ -33,6 +34,7 @@ Read these before doing anything else:
 - **Shape triggers**: Check all 12 shapes against the problem. Name any that match.
 - **Forward question**: "If a new variant appears, how many files change?" for each approach.
 - **Threshold gates**: Check before recommending any pattern. Don't over-engineer.
+- **Preparatory refactoring**: Does the existing code need restructuring before the new feature? If approaches differ on this (one requires prep-refactor, another doesn't), call it out as a trade-off.
 - **Connascence**: Name the coupling type each approach creates or eliminates.
 - **Extension point validation**: If the design anticipates a future variant (e.g., parallel mode next month), propose stubbing it now (raise/no-op) to prove the seam works. Ship the stub — it validates the extension point and makes adding the real implementation a fill-in-the-blanks exercise.
 

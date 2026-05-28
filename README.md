@@ -73,19 +73,29 @@ All terms are explained with parenthetical definitions on first use — the skil
 
 A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier agent during execute-plan, and by ruby-review for PR feedback.
 
-### Shameless Green + Pre-flight Sweep
+### The Quality Loop
 
-The execute-plan skill enforces:
-1. **Shameless Green**: Write the simplest code that passes the test first. Refactor after.
-2. **Pre-flight sweep**: Mechanical checklist before submitting (T.must comments, no T.untyped, keyword args, methods under 15 lines, etc.)
-3. **Simplicity check**: "Is there a simpler way to express this?" for each method.
+The 8-step development cycle that all skills follow:
+
+1. **Design** — shape triggers, sorbet type triggers, seam identification, preparatory refactoring check
+2. **Red** — one failing test
+3. **Green** — shameless green (simplest code that passes)
+4. **Refactor** — mechanical pass then design pass
+5. **Simplify** — expression-level compression, name-at-call-site audit, extraction justification. Loops until clean.
+6. **Next test** — repeat 2-5
+7. **Pre-flight sweep** — binary mechanical checks (T.must comments, no T.untyped, keyword args, methods under 15 lines, etc.)
+8. **Verify** — fresh-eyes ruby-verifier agent. Gate before the user sees anything.
+
+### Preparatory Refactoring
+
+When existing code doesn't have the seams to receive new behavior cleanly, the Design step (Step 1) identifies this and triggers a refactoring-first approach: restructure in a separate commit (zero behavior change, all tests green), then start TDD against the clean structure. Signals include scattered related methods in a bloated host class, repeated conditionals on the same discriminator, and painful test setup from coupling. Based on Feathers (Working Effectively with Legacy Code), Fowler (Refactoring), and Beck ("make the change easy, then make the easy change").
 
 ## How the skills compose
 
 - **`ruby-programming`** (ambient) auto-loads design shapes and vocabulary into every Ruby session
-- **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis and threshold gates
-- **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, pre-flight sweep, and the ruby verifier
-- **`ruby-review`** does a design pass (shapes, connascence, SOLID), dispatches the ruby verifier, and complements the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
+- **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis, threshold gates, and preparatory refactoring assessment
+- **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, the full quality loop, and the ruby verifier
+- **`ruby-review`** does a design pass (shapes, connascence, SOLID, missed prep-refactoring), dispatches the ruby verifier, and complements the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
 - **`pair`** is for sustained collaborative work across multiple PRs. Socratic context-building (short-term AND long-term scope), phased roadmap, then iterative implementation where the user reviews every commit. Uses the ruby verifier and TDD cycle but never auto-executes.
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
