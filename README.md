@@ -41,6 +41,7 @@ Start a new Claude Code session. You should see these skills available:
 - `ruby-programming:brainstorm`
 - `ruby-programming:execute-plan`
 - `ruby-programming:ruby-review`
+- `ruby-programming:pair`
 
 ## Skills
 
@@ -50,6 +51,7 @@ Start a new Claude Code session. You should see these skills available:
 | `brainstorm` | Invokeable | `/ruby-programming:brainstorm` |
 | `execute-plan` | Invokeable | `/ruby-programming:execute-plan` |
 | `ruby-review` | Invokeable | `/ruby-programming:ruby-review` |
+| `pair` | Invokeable | `/ruby-programming:pair` |
 
 ## What it does
 
@@ -84,5 +86,6 @@ The execute-plan skill enforces:
 - **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis and threshold gates
 - **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, pre-flight sweep, and the ruby verifier
 - **`ruby-review`** does a design pass (shapes, connascence, SOLID), dispatches the ruby verifier, and complements the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
+- **`pair`** is for sustained collaborative work across multiple PRs. Socratic context-building (short-term AND long-term scope), phased roadmap, then iterative implementation where the user reviews every commit. Uses the ruby verifier and TDD cycle but never auto-executes.
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.

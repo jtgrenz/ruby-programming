@@ -114,12 +114,15 @@ Flag these if observed. **Do not recommend specific patterns** — the parent ag
 
 | Smell | Fix |
 |-------|-----|
-| Method that wraps a single Ruby built-in call | Inline it — the wrapper adds indirection without depth |
-| Local variable assigned and returned on the next line | Inline the expression |
+| Method replaceable by a Ruby built-in (`each_with_object` → `transform_values`, custom loop → `filter_map`) | Use the built-in |
+| Method that wraps a single built-in call | Inline it — the wrapper adds indirection without depth |
 | Multi-line conditional that could be a guard clause + early return | Restructure to guard clause |
-| Class with one public method that could be a lambda or method object | Downgrade to lambda unless it has meaningful state |
-| Method longer than its caller | The abstraction may be at the wrong level — the caller is the simple part |
+| Multi-line block that could be a one-liner without losing clarity | Collapse it |
+| Local variable assigned and returned on the next line | Inline the expression |
 | Intermediate variable with a name that just restates the right-hand side (`result = calculate_result`) | Inline it |
+| Class with one public method that could be a lambda or method object | Downgrade to lambda unless it has meaningful state |
+| Method deletable because its caller could do the work inline | Delete it |
+| Method longer than its caller | The abstraction may be at the wrong level — the caller is the simple part |
 
 ## Architecture (for larger changes)
 

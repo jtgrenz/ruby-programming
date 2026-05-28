@@ -191,7 +191,7 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 4. Run tests. Repeat.
 
 ### Discipline
-  
+
 - **Write dirty first, then clean.** Don't try to design perfectly on the first pass. Get it working, then refactor.
 - **Accidental duplication is not real duplication.** Two code paths that look identical but change for different reasons should NOT be merged. Three tests: (1) would changing one require changing the other? (2) do they change for the same reason? (3) do they change at the same rate? If any answer is no, they're accidentally similar — leave them separate.
 - **Never mix refactoring and feature work** in the same commit.
@@ -202,15 +202,28 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 
 Flag any smell from the **Smells** table in the quality checklist (`~/.claude/skills/ruby-programming/references/quality-checklist.md`). The checklist is the canonical list — don't maintain a separate copy here.
 
-## Code Review Mode
+## Writing About Code
 
-When reviewing a PR or diff, run the **design pass before the syntax pass**. Read `references/design-shapes.md` and `references/design-vocabulary.md` first.
+Commit messages, PR descriptions, and code comments written by this plugin. If the user has a personal writing style configured (e.g., `write-like-me` skill, CLAUDE.md style rules), use that and ignore these defaults. These are fallbacks for when nothing else is configured.
 
-1. **Design pass**: Does the diff's structure model the business domain correctly? Check each shape trigger. For every shape match, **name the pattern and provide a specific recommendation** — not "consider Strategy" but "this looks like Strategy because [shape evidence], and here's what it would look like: [sketch]."
-2. **Forward question**: "If a new variant appears (new agency, new filing type, new transmission mode), how many files change?" If the answer is "many," the design is missing a seam.
-3. **Syntax pass**: Naming, types, tests, smells — the existing checklist.
+### Commit messages
+- Succinct — 40-80 chars.
+- Lead with WHY, not WHAT. "Fix the N+1 in scheduling query" not "update scheduling query to use includes."
+- Prose body when the diff isn't self-explanatory. First person, active voice.
+- The simpler the change, the simpler the message. 
+- Verbosity scales with novelty: version bumps get one-liners, architectural changes get paragraphs.
 
-Design issues outrank syntax issues. A well-named method in a wrong architecture is still wrong.
+### PR descriptions
+- Open with context: why this change exists, what prompted it, where it fits in the larger effort.
+- Don't enumerate what the diff already shows. The reviewer can read the code — explain the decisions.
+- Omit rudimentary test methodology details. Don't mention that Sorbet type-checks pass, specs pass, or RuboCop is clean — those are table stakes, not PR content.
+- Flag follow-up work and tech debt honestly. What this PR doesn't include and why.
+
+### What to omit
+- Don't list "Added X, Updated Y, Fixed Z" changelogs. Tell the story instead.
+- Don't fill template sections with filler. Blank is better than fluff.
+- Don't describe testing methodology unless it's unusual or novel. "With specs" or blank.
+- Don't mention linting, type checking, or CI passing as accomplishments.
 
 ## Sources
 

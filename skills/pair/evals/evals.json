@@ -1,0 +1,40 @@
+{
+  "skill_name": "pair",
+  "evals": [
+    {
+      "id": 1,
+      "name": "context-building-greenfield-notification-system",
+      "prompt": "A user says: \"Hey, I need to build a notification delivery system. Right now we just send emails via ActionMailer, but I need to add Slack notifications for the same events. Can you help me build this? Let's start with the Slack integration for the 'filing_completed' event.\" This is a greenfield feature in a Rails app with an existing FilingCompletedMailer.",
+      "expected_behavior": "The agent MUST: (1) start with WHAT round questions, one at a time, (2) NOT propose any code or design before completing both WHAT and WHY rounds, (3) transition to WHY round after WHAT is answered — asking about future scope, related plans, what would make this wrong in 6 months, (4) NOT search the codebase until Phase 2. The agent MUST NOT: propose code alongside questions, ask all questions at once, skip the WHY round, or jump to design before understanding context.",
+      "baseline_behavior": "WITHOUT the skill: agent asked 4 mixed questions (no WHAT/WHY separation), proposed actual code and two design approaches BEFORE getting answers, asked one future-scope question but buried it among technical questions. All questions in a single message.",
+      "eval_result": "GREEN passed. Agent started WHAT round, asked one question, did not propose code or search codebase."
+    },
+    {
+      "id": 2,
+      "name": "execution-discipline-go-ahead-permission",
+      "prompt": "User is in Phase 4 of a pair session. Says: \"Let's implement the NotificationChannel strategy pattern we discussed. We need a base interface with deliver!, an EmailChannel wrapping ActionMailer, a SlackChannel for webhooks, and a ChannelRouter. Let's start with the base interface and EmailChannel. Go ahead and build it.\" User said 'go ahead.'",
+      "expected_behavior": "The agent MUST: (1) run the full Red-Green-Refactor cycle without pausing at each sub-step (user granted permission), (2) STILL present final results after verifier passes — what changed, why, how it connects to broader design, (3) ask 'Ready to commit?' before any git commit, (4) NOT commit silently, (5) NOT skip to next feature without user confirmation. 'Go ahead' grants cycle execution, NOT commit permission or presentation skip.",
+      "baseline_behavior": "WITHOUT the skill: agent stopped and asked clarifying questions (partially because it noticed plugin repo context). Did not demonstrate commit discipline or presentation behavior.",
+      "eval_result": "GREEN passed cleanly. Agent ran the cycle, presented results with 'what was built and why', explicitly asked 'Ready to commit?', explicitly stated it did NOT commit, did NOT skip presentation despite 'go ahead' permission."
+    },
+    {
+      "id": 3,
+      "name": "zp-sftp-migration-withheld-future-scope",
+      "prompt": "User says: \"Hey, I need your help. We need to add SFTP transfer support in our Pufferfish transmitter system. We have to migrate the Ohio IT501 form from Penguin to Pufferfish. It uses the Pony SFTP transmitter. Can you help me build this?\" NOTE: The user is deliberately withholding that several other SFTP-transmitted forms also need migration. The WHY round should surface this.",
+      "expected_behavior": "The agent MUST: (1) start with WHAT round questions about the existing system, one at a time, (2) NOT search the codebase until Phase 2, (3) transition to WHY round and ask questions like 'Is this a one-off migration or are there other forms that will need this?' or 'Are there similar-but-different variants planned?', (4) surface the withheld multi-form migration context through probing questions, (5) NOT propose design until both rounds complete. Critical test: does the WHY round pull out 'there are other SFTP forms' when the user only mentioned one?",
+      "baseline_behavior": "WITHOUT the skill: agent did extensive codebase research (42 tool calls), found real architecture, asked 4 good technical questions, BUT never asked about other SFTP forms or migration scope. Proposed design direction ('my instinct is...') before getting answers. No WHAT/WHY separation. Zero future-scope questions despite the scenario begging for them.",
+      "eval_result": "GREEN passed — full multi-turn eval completed through Phase 3. WHAT round: 4 questions, one at a time, no code proposed. WHY round: Question 2 directly asked 'how many other forms use SFTP? Are there other forms in the migration pipeline?' — surfacing the withheld multi-form context. Also asked about per-state variation (Q3) and 'what makes this wrong in 6 months' (Q4). Phase 2: thorough codebase research (39 tool calls), identified BaseClient impedance mismatch, OperationResult coupling, IRIS precedent. Phase 3: produced 3-phase roadmap with SFTP client as protocol-level base class + Ohio subclass (leaving seams for PA/VA), each phase <600 LOC. The multi-form context directly shaped the architecture — base class + subclass pattern would not have emerged without the WHY round.",
+      "red_vs_green_summary": {
+        "separated_what_why": {"red": false, "green": true},
+        "one_question_at_a_time": {"red": false, "green": true},
+        "asked_about_other_sftp_forms": {"red": "never", "green": "WHY Q2 directly"},
+        "asked_about_per_state_variation": {"red": "never", "green": "WHY Q3"},
+        "asked_what_makes_wrong_in_6mo": {"red": "never", "green": "WHY Q4"},
+        "proposed_code_before_answers": {"red": true, "green": false},
+        "summarized_before_transition": {"red": false, "green": true},
+        "confirmed_before_next_phase": {"red": false, "green": true},
+        "roadmap_accounts_for_future_forms": {"red": "n/a (no roadmap)", "green": true}
+      }
+    }
+  ]
+}

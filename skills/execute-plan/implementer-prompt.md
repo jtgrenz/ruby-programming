@@ -39,11 +39,14 @@ Before submitting for review, do a mechanical pass over ALL code you wrote. Repo
 ### Simplicity Check
 After the pre-flight, review each method you wrote and ask: "Is there a simpler way to express this?" Specifically:
 - Can any method be replaced by a Ruby built-in? (`each_with_object` → `transform_values`, custom loop → `filter_map`)
+- Does any method wrap a single built-in call? (inline it — the wrapper adds indirection without depth)
 - Can any conditional be replaced by a guard clause + early return?
 - Can any multi-line block be a one-liner without losing clarity?
 - Is there a local variable that exists only to be returned on the next line? (inline it)
-- Does any class exist that a method or lambda would handle?
-- Can any method be deleted entirely because its caller could do the work inline?
+- Does any intermediate variable just restate the right-hand side? (`result = calculate_result` → inline it)
+- Does any class with one public method exist that a lambda would handle? (downgrade unless it has meaningful state)
+- Can any method be deleted because its caller could do the work inline?
+- Is any method longer than its caller? (the abstraction may be at the wrong level)
 
 The goal is the SHORTEST, CLEAREST code that passes the tests. Not clever — clear. Every line should earn its place.
 
