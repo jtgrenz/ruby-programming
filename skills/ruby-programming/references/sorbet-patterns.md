@@ -1,6 +1,6 @@
 # Sorbet Type-Level Design Triggers
 
-Read this during the **Design** step (Stage 1) and the **Design Pass** in the **Refactor** step (Stage 4) of the Quality Loop — alongside `design-shapes.md`. Design shapes tell you what structural pattern to apply; these triggers tell you which **Sorbet type tool** expresses it.
+Read this during the **Design** step (Step 1) and the **Design Pass** in the **Refactor** step (Step 4) of the Quality Loop — alongside `design-shapes.md`. Design shapes tell you what structural pattern to apply; these triggers tell you which **Sorbet type tool** expresses it.
 
 ---
 

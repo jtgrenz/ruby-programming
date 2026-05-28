@@ -1,6 +1,6 @@
 # Ruby Quality Checklist
 
-Read this during the **Verify** step of the Quality Loop and when reviewing Ruby code in PRs.
+Read this during the **Verify** step (Step 8) of the Quality Loop and when reviewing Ruby code in PRs.
 
 ## Naming
 
@@ -9,6 +9,7 @@ Read this during the **Verify** step of the Quality Loop and when reviewing Ruby
 - [ ] One word per concept across the module (not mixing `fetch`/`get`/`retrieve`)
 - [ ] Variables spelled out — no abbreviations except `k`/`v`/`i`
 - [ ] Method names at the right abstraction level (not implementation-leaking)
+- [ ] Method names accurate at the **call site** — name describes the method's full behavior, including all branches and early returns (not just the happy path or primary check)
 - [ ] No comments explaining WHAT code does (rename/extract instead). Comments only for complex domain WHY (tax law, regulatory constraints) or high-level algorithmic strategy on well-factored code
 
 ## Method Structure
@@ -123,6 +124,7 @@ Flag these if observed. **Do not recommend specific patterns** — the parent ag
 | Class with one public method that could be a lambda or method object | Downgrade to lambda unless it has meaningful state |
 | Method deletable because its caller could do the work inline | Delete it |
 | Method longer than its caller | The abstraction may be at the wrong level — the caller is the simple part |
+| Extracted method that doesn't survive the deletion test (inlining it doesn't make the caller harder to read) | Inline it — the extraction adds indirection without absorbing complexity |
 
 ## Architecture (for larger changes)
 

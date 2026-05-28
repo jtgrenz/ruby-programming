@@ -93,7 +93,7 @@ The loop for each phase:
 
 **1. Plan together.** Write a detailed plan for just this phase — what files change, what tests to write, what order. Save it as a numbered markdown file in an uncommitted folder (e.g., `.pair-plans/001-phase-1.md`, `002-phase-2.md`). These are working documents — do NOT commit them. They exist so future sessions can pick up mid-phase. Present the plan to the user for approval. Do NOT invoke `writing-plans` — that auto-transitions to execution.
 
-**2. Build.** Read `${SKILL_DIR}/../execute-plan/implementer-prompt.md` for Ruby-specific guidance (Shameless Green, pre-flight sweep, simplicity check). Then run the full quality loop — Red, Green, Refactor, Pre-flight, Verify — without pausing at intermediate steps. The user doesn't need to see the failing test or the shameless green separately. Phases should be small enough that the final code is reviewable.
+**2. Build.** Read `${SKILL_DIR}/../execute-plan/implementer-prompt.md` for Ruby-specific guidance (Shameless Green, pre-flight sweep, simplify). Then run the full quality loop — Red, Green, Refactor, Simplify, Pre-flight, Verify — without pausing at intermediate steps. The user doesn't need to see the failing test or the shameless green separately. Phases should be small enough that the final code is reviewable.
 
 **Quality gate: ruby-verifier.** Dispatch the ruby-verifier agent (see `${SKILL_DIR}/../ruby-programming/agents/ruby-verifier.md` and `${SKILL_DIR}/../ruby-programming/references/quality-checklist.md`). Fix all FAIL items, re-verify until clean.
 

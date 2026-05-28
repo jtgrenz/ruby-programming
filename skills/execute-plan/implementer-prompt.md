@@ -36,17 +36,28 @@ Before submitting for review, do a mechanical pass over ALL code you wrote. Repo
 - [ ] Methods under 15 lines
 - [ ] Functional transforms, not imperative loops (map/select/reject, not loop-and-append)
 
-### Simplicity Check
-After the pre-flight, review each method you wrote and ask: "Is there a simpler way to express this?" Specifically:
+### Simplify (mandatory after every code change)
+After every edit — not just at the end — re-read each new or changed method and loop until a full pass finds nothing:
+
+**Expression-level compression:**
+- Can any temp variable be inlined? (assigned-then-used-on-next-line = inline)
+- Does any intermediate variable just restate the right-hand side? (`result = calculate_result` → inline it)
+- Can any conditional become a guard clause + early return?
 - Can any method be replaced by a Ruby built-in? (`each_with_object` → `transform_values`, custom loop → `filter_map`)
 - Does any method wrap a single built-in call? (inline it — the wrapper adds indirection without depth)
-- Can any conditional be replaced by a guard clause + early return?
-- Can any multi-line block be a one-liner without losing clarity?
-- Is there a local variable that exists only to be returned on the next line? (inline it)
-- Does any intermediate variable just restate the right-hand side? (`result = calculate_result` → inline it)
+- Can any multi-line block become a one-liner without losing clarity?
 - Does any class with one public method exist that a lambda would handle? (downgrade unless it has meaningful state)
 - Can any method be deleted because its caller could do the work inline?
 - Is any method longer than its caller? (the abstraction may be at the wrong level)
+
+**Name-at-call-site audit:**
+- Read each method name **where it's called**, not where it's defined.
+- Does the name accurately describe the method's **full behavior**, including all branches and early returns?
+- If the method does more than the name promises, either rename it to cover the full scope, or inline it back into the caller where the individual checks are explicit.
+
+**Extraction justification:**
+- Does each extracted method absorb complexity (deep) or just relocate it (shallow)?
+- Apply the deletion test: if you deleted this method and inlined its body, would the caller get harder to read? If not, the extraction doesn't earn its keep.
 
 The goal is the SHORTEST, CLEAREST code that passes the tests. Not clever — clear. Every line should earn its place.
 

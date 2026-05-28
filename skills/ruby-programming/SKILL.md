@@ -62,10 +62,38 @@ Each improvement is a separate change. If you can't describe it in five words, i
 - Does the code now match a **sorbet type trigger**? (e.g., closed variants → `sealed!`, factory method → `T.attached_class`, callback block → `T.bind`)
 - Name the pattern if one emerged. If you're recommending an extraction, state which shape trigger justifies it.
 
-### 5. Next test
-Go back to step 2 with the next behavior. Repeat the Red → Green → Refactor cycle until all behaviors are implemented. The code grows incrementally — each cycle adds one concept.
+### 5. Simplify
+**Mandatory after every code change.** This is not the pre-flight sweep and not the verifier — it's faster than both. It fires after every edit in the Red→Green→Refactor cycle, not just at the end.
 
-### 6. Pre-flight sweep
+Re-read each new or changed method. For each one:
+
+**Expression-level compression:**
+- Can any temp variable be inlined? (assigned-then-used-on-next-line = inline)
+- Does any intermediate variable just restate the right-hand side? (`result = calculate_result` → inline it)
+- Can any conditional become a guard clause + early return?
+- Can any method be replaced by a Ruby built-in? (`each_with_object` → `transform_values`, custom loop → `filter_map`)
+- Does any method wrap a single built-in call? (inline it — the wrapper adds indirection without depth)
+- Can any multi-line block become a one-liner without losing clarity?
+- Does any class with one public method exist that a lambda would handle? (downgrade unless it has meaningful state)
+- Can any method be deleted because its caller could do the work inline?
+- Is any method longer than its caller? (the abstraction may be at the wrong level)
+
+**Name-at-call-site audit:**
+- Read each method name **where it's called**, not where it's defined.
+- Does the name accurately describe the method's **full behavior**, including all branches and early returns?
+- If the method does more than the name promises, either rename it to cover the full scope, or inline it back into the caller where the individual checks are explicit.
+- A method named `workflow_supported?` that also checks tax coupons and filing forms is a name that lies. The caller reads `return DEFAULT if workflow_supported?(...)` and has no idea those other checks are happening.
+
+**Extraction justification:**
+- Does each extracted method absorb complexity (deep) or just relocate it (shallow)?
+- Apply the deletion test: if you deleted this method and inlined its body, would the caller get harder to read? If not, the extraction doesn't earn its keep.
+
+**Loop until clean.** If you find something, fix it and re-read. Repeat until a full pass finds nothing. This self-loop is fast and self-limiting — it naturally terminates when the code stops changing. The design thinking in Step 4 often displaces mechanical scrutiny of the expression. This step exists to catch that gap.
+
+### 6. Next test
+Go back to step 2 with the next behavior. Repeat the Red → Green → Refactor → Simplify cycle until all behaviors are implemented. The code grows incrementally — each cycle adds one concept.
+
+### 7. Pre-flight sweep
 Before submitting to the verifier, do a quick mechanical pass over your code. These are the most common first-pass mistakes — binary checks, not judgment calls:
 - [ ] Every `T.must` has an inline WHY comment proving nil is impossible
 - [ ] No `T.untyped` for known structures — use `T.type_alias`, `T::Struct`, or explicit types. Only at real boundaries (untyped gems, deserialized data)
@@ -77,10 +105,12 @@ Before submitting to the verifier, do a quick mechanical pass over your code. Th
 - [ ] Methods under 15 lines
 - [ ] Functional transforms (`map`/`select`/`flat_map`), not imperative `<<` loops
 
-Fix anything you catch before spawning the verifier. This reduces verify/fix round-trips from ~4 to ~1-2.
+Fix anything you catch. If fixes were needed, run the Simplify pass (Step 5) on the changed code before moving to Verify. The verifier only sees code that has passed both this sweep and Simplify.
 
-### 7. Verify
-When the pre-flight sweep is clean, spawn the `ruby-verifier` agent with only the changed file paths and the quality checklist path (`~/.claude/skills/ruby-programming/references/quality-checklist.md`). No implementation context, no justifications — fresh eyes. The agent returns PASS/FAIL per checklist item. Fix all FAILs, return to the appropriate stage (Design for structural issues, Refactor for smells), and spawn the agent again. Always use the sub-agent — never self-verify.
+### 8. Verify
+**The verifier is the gate before the user sees anything.** Never present code to the user without a clean verify pass. This is not optional even for small changes — the verifier checks simplicity, naming, and design with fresh eyes that self-review cannot replicate.
+
+When the pre-flight sweep and simplify pass are both clean, spawn the `ruby-verifier` agent with only the changed file paths and the quality checklist path (`~/.claude/skills/ruby-programming/references/quality-checklist.md`). No implementation context, no justifications — fresh eyes. The agent returns PASS/FAIL per checklist item. Fix all FAILs, return to the appropriate stage (Design for structural issues, Refactor for smells, Simplify for expression-level or naming issues), and spawn the agent again. Always use the sub-agent — never self-verify.
 
 **Accumulate context across passes.** On each subsequent verify pass, include: (1) which prior FAILs were fixed, (2) which were overridden and why. This prevents the verifier from re-litigating resolved decisions and lets the loop converge. Without this context, each fresh-eyes pass finds different issues and the loop oscillates instead of converging.
 
