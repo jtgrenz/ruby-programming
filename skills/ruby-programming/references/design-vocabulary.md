@@ -10,7 +10,7 @@ Precise terms for design discussions. Use these terms exactly — don't drift in
 
 **Axis of change** — A dimension along which requirements will vary independently. Each axis suggests a seam. Serial-vs-parallel transmission is one axis. IRS-vs-NY agency rules are another. If two things change for different reasons, they belong in different classes.
 
-**Seam** — A point where behavior can be altered without editing in place (Michael Feathers, *Working Effectively with Legacy Code*). Constructor injection, method override, and configuration are seams. Hardcoded class names and inline conditionals are not.
+**Seam** — A point where behavior can be altered without editing in place (Michael Feathers, *Working Effectively with Legacy Code*). Constructor injection, method override, and configuration are seams. Hardcoded class names and inline conditionals are not. Every seam has an **enabling point** — the place where you decide which behavior to use. Three types in Ruby: object seam (inject a different collaborator), link seam (swap a module), preprocessing seam (rare — metaprogramming/ERB). See `preparatory-refactoring.md` for the full taxonomy and decision tree.
 
 **Mode** — A runtime configuration that changes which behavior applies. Modes that carry different data are strategies, not booleans. If a mode makes some fields meaningless, you have two types sharing a trenchcoat.
 

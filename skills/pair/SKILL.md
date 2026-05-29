@@ -91,7 +91,14 @@ For each phase in the roadmap:
 
 The loop for each phase:
 
-**1. Plan together.** Write a detailed plan for just this phase — what files change, what tests to write, what order. Check whether existing code needs preparatory refactoring before the feature work (see `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md`). If yes, the prep-refactor is a separate commit at the start of the phase. Save the plan as a numbered markdown file in an uncommitted folder (e.g., `.pair-plans/001-phase-1.md`, `002-phase-2.md`). These are working documents — do NOT commit them. They exist so future sessions can pick up mid-phase. Present the plan to the user for approval. Do NOT invoke `writing-plans` — that auto-transitions to execution.
+**1. Plan together.** Write a detailed plan for just this phase — what files change, what tests to write, what order.
+
+Check whether existing code needs preparatory refactoring before the feature work (see `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md`). If yes, follow the Prep-Refactor Path:
+- **Structure is clear** → locate the seam, plan the prep-refactor as a separate commit at the start of the phase.
+- **Structure is messy but emerging** → schedule tidying (small committed improvements) at the start of the phase until the seam becomes visible.
+- **Lost** → schedule scratch refactoring first (throwaway branch to learn the structure — save learnings to `.pair-plans/scratch-notes.md`, then discard the branch). Once the structure is visible, locate the seam.
+
+Save the plan as a numbered markdown file in an uncommitted folder (e.g., `.pair-plans/001-phase-1.md`, `002-phase-2.md`). These are working documents — do NOT commit them. They exist so future sessions can pick up mid-phase. Present the plan to the user for approval. Do NOT invoke `writing-plans` — that auto-transitions to execution.
 
 **2. Build.** Read `${SKILL_DIR}/../execute-plan/implementer-prompt.md` for Ruby-specific guidance (Shameless Green, pre-flight sweep, simplify). Then run the full quality loop — Red, Green, Refactor, Simplify, Pre-flight, Verify — without pausing at intermediate steps. The user doesn't need to see the failing test or the shameless green separately. Phases should be small enough that the final code is reviewable.
 

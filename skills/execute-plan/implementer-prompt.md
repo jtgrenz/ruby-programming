@@ -24,7 +24,12 @@ Before writing code, check the EXISTING code you'll be modifying:
 - Would the plan make an existing smell WORSE? If yes, flag it before implementing.
 - Don't over-engineer: check that the pattern earns its keep before applying it
 
-**Preparatory refactoring check:** Does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a bloated class, adding scattered related methods, duplicating conditionals on the same threshold), **refactor first in a separate commit** — extract the class/method, verify all existing tests pass (zero behavior change), then start TDD against the clean structure. Skip when greenfield, the seam already exists, or the Refactor step can handle it after the fact.
+**Preparatory refactoring check:** Does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a bloated class, adding scattered related methods, duplicating conditionals on the same threshold), **refactor first in a separate commit**:
+1. **How well can you see the structure?** Clearly → step 2. Mostly but messy → tidy first (small committed improvements until the seam emerges). Lost → scratch refactor (throwaway branch to learn the structure, save learnings to the implementation plan or a working doc, discard branch).
+2. **Locate the seam** — name the seam type (object, link, or preprocessing) and its enabling point.
+3. Extract the class/method along the seam, verify all existing tests pass (zero behavior change), then start TDD against the clean structure.
+
+Skip when greenfield, the seam already exists, or the Refactor step can handle it after the fact.
 
 ### Pre-flight Sweep
 Before submitting for review, do a mechanical pass over ALL code you wrote. Report the results explicitly:

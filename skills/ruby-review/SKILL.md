@@ -33,7 +33,7 @@ Then review the diff with design eyes:
 - **Forward question**: "If a new variant appears, how many files change?" for any polymorphism-adjacent code.
 - **Connascence**: Name the coupling type the change creates or eliminates.
 - **SOLID**: Cite relevant principles when they apply.
-- **Preparatory refactoring**: Was new code added to a bloated class when it should have been extracted first? Flag if the diff adds related methods to an already-large host without extracting them into a focused object.
+- **Preparatory refactoring**: Was new code added to a bloated class when it should have been extracted first? Flag if the diff adds related methods to an already-large host without extracting them into a focused object. Check whether a seam existed (object seam via constructor injection, link seam via module inclusion) that would have made extraction safe — if so, the author should have cut along it before adding new behavior.
 - **Rejected framings**: Flag if the diff matches any ("add a param with a default = backward compatible", "boolean flag that forks execution", etc.)
 
 **Make it readable for the team.** Code reviews are read by the PR author AND future readers. Most engineers haven't seen connascence or design shapes before:

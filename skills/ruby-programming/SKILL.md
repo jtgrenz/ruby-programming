@@ -31,11 +31,12 @@ Before writing anything: What messages need to be sent? What are the dependencie
 - Where are the **seams** — points where future behavior changes without editing in place?
 - If no pattern fits, state why: "No shape triggers match because [reason]."
 
-**Preparatory refactoring check** — read `references/preparatory-refactoring.md`, then answer: does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a 600-line class, adding more mode-dependent conditionals, scattering related methods across an unrelated host), **refactor first in a separate commit**:
-1. Write characterization tests for the existing behavior if coverage is thin
-2. Extract/restructure the existing code to create the seam the new feature needs
-3. Verify all existing tests pass — this commit changes zero behavior
-4. Then start the TDD cycle (Step 2) against the clean structure
+**Preparatory refactoring check** — read `references/preparatory-refactoring.md`, then answer: does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a 600-line class, adding more mode-dependent conditionals, scattering related methods across an unrelated host), **refactor first in a separate commit**. Follow the Prep-Refactor Path in the reference doc:
+1. **How well can you see the structure?** Clearly → step 2. Mostly but messy → tidy first (small committed improvements until the seam emerges). Lost → scratch refactor (throwaway branch to learn the structure, save learnings to working doc, discard branch).
+2. **Locate the seam** — name the seam type (object, link, or preprocessing) and its enabling point.
+3. Write characterization tests for the existing behavior if coverage is thin.
+4. Extract/restructure along the seam. Verify all existing tests pass — zero behavior change.
+5. Then start the TDD cycle (Step 2) against the clean structure.
 
 Skip this when: the code is greenfield, the existing structure already has the right seam, or the change is small enough that the Refactor step (Step 4) can handle it after the fact without mixing concerns.
 

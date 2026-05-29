@@ -9,7 +9,7 @@
       "name": "ruby-programming",
       "source": "./",
       "description": "Ruby design pattern recognition, quality enforcement, and structured development workflows.",
-      "version": "0.6.0"
+      "version": "0.7.0"
     }
   ]
 }
