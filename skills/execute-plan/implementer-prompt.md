@@ -68,6 +68,11 @@ After every edit — not just at the end — re-read each new or changed method 
 
 The goal is the SHORTEST, CLEAREST code that passes the tests. Not clever — clear. Every line should earn its place.
 
+### Running specs
+Run focused, not whole files. During the Red→Green loop, run only the example or file under work (`bundle exec rspec path/to/thing_spec.rb:42`, or `-e "description"`). The full file or suite belongs at the verify gate, not inside the loop — a Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, and you pay it on every iteration.
+
+When you do run a full spec file and it turns out to be large or slow (roughly 50+ examples, or a run that drags for tens of seconds), record a memory: the spec path, that it's large, and that future work should run it focused. A later session then reads that and stays focused from the start instead of re-discovering the cost. If you are a dispatched subagent without a memory store, surface the large spec in your hand-back instead so the main agent records it.
+
 ### Sorbet
 - Default to `typed: strict` for new files
 - T.sig on every public method

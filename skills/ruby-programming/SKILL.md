@@ -214,6 +214,7 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 - **If testing is hard, the design is wrong.** Use test pain as design feedback.
 - **Before writing a new spec file, check if existing specs already cover it.** Prefer adding examples to an existing spec over creating a standalone file. Duplicate coverage is maintenance debt.
 - **Don't assert what Sorbet already proves.** If a field is `typed: strict` and non-nilable, don't write `expect(x).to be_present` — Sorbet guarantees it at compile time. Don't guard against nil on non-nilable types.
+- **Run specs focused, not whole files.** During the Red→Green loop, run only the example or file under work (`rspec path/to/spec.rb:42`), never the full suite — full runs belong at the verify gate. A Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, paid every iteration. If a full spec file proves large or slow (50+ examples, or tens of seconds), record a memory noting that spec is large so future sessions run it focused from the start.
 
 ### TDD Sequencing (follows the Quality Loop's Red → Green → Refactor cycle)
 
