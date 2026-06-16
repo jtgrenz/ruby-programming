@@ -21,7 +21,7 @@ OOP design, type safety, refactoring discipline, and code quality — patterns C
 
 For each unit of work, cycle through these stages. The code starts simple and ends well-factored — the iteration is the point.
 
-**First, set the track** (`references/calibrating-rigor.md`). The steps below are the **Discovery** track — for when the design is emerging. On the **Transcription** track — re-deriving a validated design, a mechanical port, a trivial change — the answer is known, so batch the build and write one comprehensive spec instead of micro-looping. Per-change build ceremony on a known design burns tokens (cache reads, repeated spec boots) without buying quality. The Verify gate (Step 8) still runs regardless — we review code against our best practices in either track. When unsure, default to Discovery.
+**First, set the track** (`references/calibrating-rigor.md`). The steps below are the **Discovery** track. On **Transcription** — a validated design, mechanical port, or trivial change — batch the build instead of micro-looping; the Verify gate (Step 8) still runs regardless. When unsure, default to Discovery.
 
 ### 1. Design
 Before writing anything: What messages need to be sent? What are the dependencies? Object or data structure? Sketch the public interface in your head, not the implementation.
