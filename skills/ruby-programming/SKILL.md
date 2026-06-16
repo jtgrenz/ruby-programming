@@ -12,7 +12,7 @@ OOP design, type safety, refactoring discipline, and code quality — patterns C
 
 1. **The codebase is the primary source.** Check existing patterns before inventing new ones. Consistency with the codebase beats theoretical purity.
 2. **Design for changeability, not perfection.** Every choice should make future modifications cheaper.
-3. **Shameless Green first, then improve.** Write the simplest code that passes the test — strings not enums, hashes not structs, conditionals not class hierarchies. You don't have enough examples yet to know what the right abstraction is. The final code SHOULD have enums, typed structs, and clean architecture — but those emerge from refactoring, not from the first write.
+3. **Shameless Green when the design is open.** When you're discovering the shape, write the simplest code that passes — strings not enums, hashes not structs, conditionals not hierarchies — and let the abstraction emerge from refactoring once examples accumulate. Its value is guarding against premature or wrong abstraction; it is not a ritual. When the design is already validated (re-deriving a verified prototype, a mechanical port, a known pattern), skip it and write the target shape directly. See `references/calibrating-rigor.md`.
 4. **Think in messages, not classes.** "What messages need to be sent?" before "What classes should I create?"
 5. **Type safety by default.** Sorbet sigs on all public methods. Prefer explicit types over `T.untyped`. Use `T.nilable` to handle nilability explicitly.
 6. **One change at a time, always green.** Never mix refactoring and feature work. Tests pass after every change.
@@ -20,6 +20,8 @@ OOP design, type safety, refactoring discipline, and code quality — patterns C
 ## The Quality Loop
 
 For each unit of work, cycle through these stages. The code starts simple and ends well-factored — the iteration is the point.
+
+**First, set the track** (`references/calibrating-rigor.md`). The steps below are the **Discovery** track — for when the design is emerging. On the **Transcription** track — re-deriving a validated design, a mechanical port, a trivial change — the answer is known, so batch the build and write one comprehensive spec instead of micro-looping. Per-change build ceremony on a known design burns tokens (cache reads, repeated spec boots) without buying quality. The Verify gate (Step 8) still runs regardless — we review code against our best practices in either track. When unsure, default to Discovery.
 
 ### 1. Design
 Before writing anything: What messages need to be sent? What are the dependencies? Object or data structure? Sketch the public interface in your head, not the implementation.
@@ -39,6 +41,7 @@ Skip this when: the code is greenfield, the existing structure already has the r
 Write a single test for the simplest behavior. Use the message testing matrix to decide what to assert. Run it (or confirm it would fail). Do not write implementation yet.
 
 ### 3. Green — Shameless Green
+*Discovery track. On Transcription — a validated or known design — skip Shameless Green: write the target shape and a comprehensive spec (see the track note above).*
 Write **only** the code needed to make that one test pass. This means:
 - Strings, not enums. Hashes, not T::Struct. Conditionals, not class hierarchies.
 - Hardcoded values are fine. Duplication is fine. Ugly is fine.

@@ -16,6 +16,9 @@ The test passing is the gate. Clean code comes in the Refactor step, not the Gre
 
 **Shameless Green does NOT mean "follow a bad plan faithfully."** If the design analysis (below) reveals that the plan would make an existing design smell worse — adding more mode-dependent fields to a struct that already has them, growing an if/elsif chain that's already 3+ branches — STOP. Flag it as a concern and propose an alternative before implementing. Implementing a plan you know creates technical debt is not simplicity, it's avoidance.
 
+### Match the loop to design certainty
+The per-change Red→Green loop is for *discovering* a design. If your dispatch says the design is already validated — re-deriving a verified prototype, a mechanical port, or a trivial change — do NOT micro-loop. Write the target implementation and a comprehensive spec, run the suite once, and fix failures. A full spec run catches transcription errors at the first green bar with the same safety as N micro-cycles, at a fraction of the spec boots. Reserve the per-change Red→Green→Refactor→Simplify→Pre-flight loop for phases where the shape is genuinely open. When the dispatch doesn't say, ask or default to the per-change loop.
+
 ### Design Analysis
 Before writing code, check the EXISTING code you'll be modifying:
 - What are the axes of change? (dimensions that vary independently — each suggests a seam)
@@ -69,7 +72,7 @@ After every edit — not just at the end — re-read each new or changed method 
 The goal is the SHORTEST, CLEAREST code that passes the tests. Not clever — clear. Every line should earn its place.
 
 ### Running specs
-Run focused, not whole files. During the Red→Green loop, run only the example or file under work (`bundle exec rspec path/to/thing_spec.rb:42`, or `-e "description"`). The full file or suite belongs at the verify gate, not inside the loop — a Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, and you pay it on every iteration.
+Run focused, not whole files. During the Red→Green loop, run only the example or file under work (`bundle exec rspec path/to/thing_spec.rb:42`, or `-e "description"`). The full file or suite belongs at the verify gate, not inside the loop — a Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, and you pay it on every iteration. On transcription work (design already known), batch your assertions so the suite boots once or twice for the whole phase rather than once per example — the per-example boots are the single largest avoidable cost.
 
 When you do run a full spec file and it turns out to be large or slow (roughly 50+ examples, or a run that drags for tens of seconds), record a memory: the spec path, that it's large, and that future work should run it focused. A later session then reads that and stays focused from the start instead of re-discovering the cost. If you are a dispatched subagent without a memory store, surface the large spec in your hand-back instead so the main agent records it.
 
