@@ -66,6 +66,20 @@ Use connascence to explain WHY a refactoring improves design, not just THAT it d
 
 ---
 
+## Actions, Calculations, and Data
+
+A classification lens for deciding *where behavior should live*. Every piece of code is one of three things — listed below from most dangerous to safest:
+
+**Action** — code whose result depends on *when* it runs or *how many times* it runs. DB reads/writes, network calls, reading the clock (`Time.current`), randomness (`SecureRandom`), logging, enqueueing a job, and any mutation of shared state are actions. Actions are **contagious**: a method that calls an action is itself an action. They are the hardest to test (you must stub the world) and the easiest to get wrong.
+
+**Calculation** — a computation from inputs to outputs with **no implicit inputs or outputs**: same arguments always produce the same return value, and nothing in the world changes. A pure function. Trivial to test (pass inputs, assert the return), trivial to compose and move.
+
+**Data** — inert facts about events. A `T::Struct`, a `Data` value, a frozen hash. No behavior of its own; interpreted by calculations. The easiest to store, compare, and serialize.
+
+**The diagnostic & directive.** A method is a calculation *only if* it has no implicit inputs (ivars/globals/clock/DB) and no implicit outputs (mutating args, writing the DB, logging) — convert an implicit input into an argument and an implicit output into a return value, and an action becomes a calculation. Prefer Data over Calculations over Actions: shrink the action surface to a thin shell at the edges, and push every real decision into calculations. This is the *test* behind "business logic in POROs" (a PORO method is core logic only when it's a calculation), and it's sharper than command-query separation — CQS splits *do* from *answer*; this says **extract the answer out of code that touches the world** (see Shape 13 in `design-shapes.md`).
+
+---
+
 ## Ruby Techniques That Pair With Patterns
 
 **Function composition (`>>`, `<<`)** — Ruby's proc/lambda/method composition operators enable pipeline-style code. Use with Shape 11 (Railway). `step_one >> step_two >> step_three` reads as a pipeline; each step must respond to `#call`.

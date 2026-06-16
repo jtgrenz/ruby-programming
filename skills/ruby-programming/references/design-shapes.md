@@ -536,6 +536,131 @@ end
 
 ---
 
+## Shape 13: Calculation entangled with an action
+
+**What you see:** A method mixes a real decision or computation with I/O — it reads the DB, the clock (`Time.current`), or a network response, computes a result inline, and often writes the result back. The interesting logic can't be unit-tested without stubbing the world.
+
+**Pattern:** Extract the pure calculation. Pull the decision into a method (or PORO) that takes explicit inputs and returns a value — no DB, no clock, no mutation. Leave a thin action shell that gathers the inputs, calls the calculation, and performs the effects. (See "Actions, Calculations, and Data" in `design-vocabulary.md`.)
+
+**Threshold gate — apply when ALL true:**
+- The method contains a real computation or decision worth testing (not just a single delegating call)
+- That logic currently can't be exercised without stubbing DB, time, network, or randomness
+- The inputs the decision actually depends on can be named and passed explicitly
+
+**The question to ask:** "If I passed in everything this method reads from the world, would what's left be a pure function?" A related tell is setup pain — "why does testing this need five stubs and a `travel_to`?" usually means a calculation is trapped inside an action.
+
+**Ruby example:**
+```ruby
+# Shape: eligibility decision entangled with DB reads, the clock, and a write
+def amend_if_eligible(filing_id)
+  filing = Filing.find(filing_id)
+  if filing.period_end < Time.current.to_date &&
+     filing.total_difference.abs > BigDecimal("0.05") &&
+     !filing.amended?
+    filing.update!(status: :amendment_required)
+  end
+end
+
+# Pattern: pure calculation + thin action shell
+class AmendmentEligibility
+  extend T::Sig
+
+  sig do
+    params(period_end: Date, today: Date, difference: BigDecimal, already_amended: T::Boolean)
+      .returns(T::Boolean)
+  end
+  def self.required?(period_end:, today:, difference:, already_amended:)
+    period_end < today &&
+      difference.abs > BigDecimal("0.05") &&
+      !already_amended
+  end
+end
+
+def amend_if_eligible(filing_id)            # action shell: does the I/O
+  filing = Filing.find(filing_id)
+  return unless AmendmentEligibility.required?(   # calculation: the decision
+    period_end: filing.period_end,
+    today: Time.current.to_date,
+    difference: filing.total_difference,
+    already_amended: filing.amended?,
+  )
+
+  filing.update!(status: :amendment_required)
+end
+```
+Now the calculation tests with four plain arguments — no DB, no `travel_to`, no mocks — and is reusable across trigger points (API, worker, console).
+
+**Don't apply when:** the method is genuinely all I/O with no real decision (already a thin wrapper — extraction yields an empty calculation), or the "calculation" is a single trivial expression that reads fine inline.
+
+---
+
+## Shape 14: Repeated scaffolding around a varying core
+
+**What you see:** Two or more methods share identical scaffolding — begin/rescue/retry, open/commit a transaction, start/stop a timer, log enter/exit — and differ only in the core operation sandwiched in the middle.
+
+**Pattern:** Higher-order method. Ruby blocks are first-class functions: write the scaffolding once in a method that `yield`s to a block, and let each caller pass the varying core as a block.
+
+**Threshold gate — apply when ALL true:**
+- The surrounding structure is duplicated in 2+ places, and it's *real* duplication (changes together, for the same reason, at the same rate)
+- The varying part is a single cohesive operation that fits in a block
+- The scaffolding is the interesting part; the core is a parameter to it
+
+**The question to ask:** "Is the same try/retry/measure/transaction skeleton wrapped around different middles?" If the skeleton is what repeats, hoist the skeleton and pass the middle as a block.
+
+**Ruby example:**
+```ruby
+# Shape: the same retry skeleton around two different operations
+def submit_filing(payload)
+  attempts = 0
+  begin
+    agency_client.submit(payload)
+  rescue NetworkError
+    attempts += 1
+    retry if attempts < 3
+    raise
+  end
+end
+
+def fetch_status(confirmation)
+  attempts = 0
+  begin
+    agency_client.status(confirmation)
+  rescue NetworkError
+    attempts += 1
+    retry if attempts < 3
+    raise
+  end
+end
+
+# Pattern: higher-order method — scaffolding once, core passed as a block
+sig do
+  type_parameters(:Result)
+    .params(max: Integer, block: T.proc.returns(T.type_parameter(:Result)))
+    .returns(T.type_parameter(:Result))
+end
+def with_retry(max: 3, &block)
+  attempts = 0
+  begin
+    block.call
+  rescue NetworkError
+    attempts += 1
+    retry if attempts < max
+    raise
+  end
+end
+
+def submit_filing(payload) = with_retry { agency_client.submit(payload) }
+def fetch_status(confirmation) = with_retry { agency_client.status(confirmation) }
+```
+
+**Ruby idiom:** `yield` or `&block` for the core; `ensure` for teardown that must always run (closing a connection, stopping a timer). Common shapes: `with_retry { }`, `measure("label") { }`, `transaction { }`, `with_logging { }`. The generic `type_parameters` sig keeps the wrapper fully typed — no `T.untyped` passthrough.
+
+**Relationship to Shape 9 (Decorator):** a **block** when the wrapping is inline and one concern at a time; a **Decorator** (`SimpleDelegator`, `prepend`) when wrappers compose into a stack, carry state, or are chosen at construction time.
+
+**Don't apply when:** the scaffolding only *looks* the same but differs in subtle ways between sites (accidental duplication — apply the three tests), or there's only one site today (wait for the second; one example isn't a pattern).
+
+---
+
 ## The Deletion Test (universal)
 
 For any proposed extraction, module, or abstraction — not just these shapes:

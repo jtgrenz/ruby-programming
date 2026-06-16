@@ -57,7 +57,7 @@ Start a new Claude Code session. You should see these skills available:
 
 ### Design Shape Recognition
 
-The skill teaches Claude to recognize 12 structural patterns ("shapes") in code that suggest a design pattern wants to emerge. Each shape has a **threshold gate** — conditions that must ALL be true before recommending the pattern. This prevents over-engineering.
+The skill teaches Claude to recognize 14 structural patterns ("shapes") in code that suggest a design pattern wants to emerge. Each shape has a **threshold gate** — conditions that must ALL be true before recommending the pattern. This prevents over-engineering.
 
 ### Design Vocabulary
 
@@ -65,6 +65,7 @@ Precise terms replace vague advice:
 - "Axes of change" instead of "this might need to be flexible"
 - "Connascence of Meaning" instead of "this boolean is confusing"
 - "Open/Closed Principle" instead of "this should be extensible"
+- "Actions, Calculations, Data" instead of "keep the business logic separate"
 - Threshold gates, seams, forward questions, deletion tests
 
 All terms are explained with parenthetical definitions on first use — the skill assumes your team hasn't seen these concepts before.
@@ -99,3 +100,21 @@ When existing code doesn't have the seams to receive new behavior cleanly, the D
 - **`pair`** is for sustained collaborative work across multiple PRs. Socratic context-building (short-term AND long-term scope), phased roadmap, then iterative implementation where the user reviews every commit. Uses the ruby verifier and TDD cycle but never auto-executes.
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
+
+## Sources
+
+The skill's principles draw from:
+
+- Practical Object-Oriented Design in Ruby (Metz)
+- 99 Bottles of OOP (Metz & Owen)
+- Polished Ruby Programming (Evans)
+- Eloquent Ruby (Olsen)
+- Clean Code / Clean Architecture / The Clean Coder (Martin)
+- The Pragmatic Programmer (Hunt & Thomas)
+- The Complete Guide to Rails Performance (Berkopec)
+- A Philosophy of Software Design (Ousterhout)
+- Working Effectively with Legacy Code (Feathers)
+- Refactoring (Fowler)
+- Tidy First? (Beck)
+- Design Patterns in Ruby (Olsen)
+- Grokking Simplicity (Normand)

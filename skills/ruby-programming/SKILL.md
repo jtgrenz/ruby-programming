@@ -31,12 +31,7 @@ Before writing anything: What messages need to be sent? What are the dependencie
 - Where are the **seams** — points where future behavior changes without editing in place?
 - If no pattern fits, state why: "No shape triggers match because [reason]."
 
-**Preparatory refactoring check** — read `references/preparatory-refactoring.md`, then answer: does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a 600-line class, adding more mode-dependent conditionals, scattering related methods across an unrelated host), **refactor first in a separate commit**. Follow the Prep-Refactor Path in the reference doc:
-1. **How well can you see the structure?** Clearly → step 2. Mostly but messy → tidy first (small committed improvements until the seam emerges). Lost → scratch refactor (throwaway branch to learn the structure, save learnings to working doc, discard branch).
-2. **Locate the seam** — name the seam type (object, link, or preprocessing) and its enabling point.
-3. Write characterization tests for the existing behavior if coverage is thin.
-4. Extract/restructure along the seam. Verify all existing tests pass — zero behavior change.
-5. Then start the TDD cycle (Step 2) against the clean structure.
+**Preparatory refactoring check** — read `references/preparatory-refactoring.md`. Does the existing code have the structure to receive this change cleanly? If shameless green would force a known smell (growing a 600-line class, more mode-dependent conditionals, related methods scattered across an unrelated host), **refactor first in a separate commit** — locate the seam, add characterization tests if coverage is thin, restructure with zero behavior change and all tests green, then start the TDD cycle against the clean structure. Gauge how well you can see the structure first: clearly → extract along the seam; mostly-but-messy → tidy first; lost → scratch refactor on a throwaway branch. The reference has the full path and seam taxonomy (object/link/preprocessing).
 
 Skip this when: the code is greenfield, the existing structure already has the right seam, or the change is small enough that the Refactor step (Step 4) can handle it after the fact without mixing concerns.
 
@@ -97,7 +92,7 @@ Re-read each new or changed method. For each one:
 - Does each extracted method absorb complexity (deep) or just relocate it (shallow)?
 - Apply the deletion test: if you deleted this method and inlined its body, would the caller get harder to read? If not, the extraction doesn't earn its keep.
 
-**Loop until clean.** If you find something, fix it and re-read. Repeat until a full pass finds nothing. This self-loop is fast and self-limiting — it naturally terminates when the code stops changing. The design thinking in Step 4 often displaces mechanical scrutiny of the expression. This step exists to catch that gap.
+**Loop until clean.** If you find something, fix it and re-read; repeat until a full pass finds nothing. Step 4's design thinking displaces expression-level scrutiny — this step catches that gap.
 
 ### 6. Next test
 Go back to step 2 with the next behavior. Repeat the Red → Green → Refactor → Simplify cycle until all behaviors are implemented. The code grows incrementally — each cycle adds one concept.
@@ -119,7 +114,7 @@ Fix anything you catch. If fixes were needed, run the Simplify pass (Step 5) on 
 ### 8. Verify
 **The verifier is the gate before the user sees anything.** Never present code to the user without a clean verify pass. This is not optional even for small changes — the verifier checks simplicity, naming, and design with fresh eyes that self-review cannot replicate.
 
-When the pre-flight sweep and simplify pass are both clean, spawn the `ruby-verifier` agent with only the changed file paths and the quality checklist path (`~/.claude/skills/ruby-programming/references/quality-checklist.md`). No implementation context, no justifications — fresh eyes. The agent returns PASS/FAIL per checklist item. Fix all FAILs, return to the appropriate stage (Design for structural issues, Refactor for smells, Simplify for expression-level or naming issues), and spawn the agent again. Always use the sub-agent — never self-verify.
+When the pre-flight sweep and simplify pass are both clean, spawn the `ruby-verifier` agent with only the changed file paths and the quality checklist path (`${CLAUDE_PLUGIN_ROOT}/skills/ruby-programming/references/quality-checklist.md`). No implementation context, no justifications — fresh eyes. The agent returns PASS/FAIL per checklist item. Fix all FAILs, return to the appropriate stage (Design for structural issues, Refactor for smells, Simplify for expression-level or naming issues), and spawn the agent again. Always use the sub-agent — never self-verify.
 
 **Accumulate context across passes.** On each subsequent verify pass, include: (1) which prior FAILs were fixed, (2) which were overridden and why. This prevents the verifier from re-litigating resolved decisions and lets the loop converge. Without this context, each fresh-eyes pass finds different issues and the loop oscillates instead of converging.
 
@@ -130,8 +125,9 @@ The loop exits when the verifier returns zero new FAILs. Then ask: *is this the 
 ## Designing
 
 - **One responsibility per class.** Describe in one sentence — if you need "and", split it. Ask: which actor owns this?
-- **Object or data structure — choose deliberately.** Objects hide data behind behavior — you tell them what to do, not what they contain (service objects, domain models). Data structures expose data with no behavior — you read their fields directly (T::Struct inputs, frozen hashes). Hybrids that do both are the worst of both worlds. The test: does the caller need to know the internal structure? If yes, it's a data structure. If no, it's an object.
-- **Entity vs Use Case.** The abacus test: would this business rule exist if we ran the operation with pen, paper, and an abacus? If yes, it's a domain entity (e.g., tax calculation logic). If it only exists in the automated system (e.g., workflow orchestration, scheduling), it's a use case. Separate these into distinct classes — entities should have no knowledge of the application that calls them.
+- **Object or data structure — choose deliberately.** Objects hide data behind behavior (tell them what to do — service objects, domain models). Data structures expose fields with no behavior (T::Struct inputs, frozen hashes). Hybrids are the worst of both. Test: does the caller need to know the internal structure? Yes → data structure; no → object.
+- **Entity vs Use Case.** The abacus test: would this rule exist if you ran the operation with pen, paper, and an abacus? Yes → domain entity (tax calculation logic). Only in the automated system → use case (workflow orchestration, scheduling). Keep them in distinct classes; entities know nothing about the app that calls them.
+- **Actions, Calculations, Data — classify, then push downhill.** An *action* depends on when or how often it runs (DB, clock, network, mutation, logging) and is contagious — anything that calls one is also an action. A *calculation* maps inputs to outputs with no implicit inputs or outputs (a pure function). *Data* is inert facts. Prefer Data over Calculations and Calculations over Actions: keep a thin action shell at the edges and push every real decision down into calculations. This is the test behind "business logic in POROs" — a method is core logic only if it's a calculation — and it's sharper than command-query separation. See `references/design-vocabulary.md` and Shape 13 in `references/design-shapes.md`.
 - **Business logic in POROs.** Core calculation/decision logic in plain Ruby objects — no Rails dependencies. Testable without loading Rails, portable across trigger points (API, worker, rake, console).
 - **Don't marry the framework.** Domain objects should not inherit from Rails base classes. Keep framework annotations/callbacks in the outermost layer.
 - **Inject dependencies** via constructor/keyword args. Don't hardcode class names inside methods.
@@ -145,7 +141,17 @@ The loop exits when the verifier returns zero new FAILs. Then ask: *is this the 
 - **One word per concept.** Don't mix `fetch`/`retrieve`/`get` for the same operation. Don't pun — `add` for arithmetic vs `add` for collection insert are two different methods.
 - **Name methods one abstraction level up.** Imagine other examples, ask "what's the category?" (column header technique).
 - **No noise words.** If `ProductInfo` and `ProductData` mean the same thing, you have a naming failure.
-- **Comments are generally design failures.** If you need a comment to explain what code does, the code is poorly designed — rename the method, extract a predicate, or restructure. Acceptable exceptions: complex domain reasoning that can't be captured in names (tax law edge cases, regulatory constraints, non-obvious business rules), and high-level algorithmic strategy where the code is well-factored but prose explaining the approach helps readers understand the overall plan. Never comment WHAT; rarely comment HOW; occasionally comment WHY when the domain or algorithm is genuinely complex.
+- **Comments are generally design failures.** If a comment explains *what* code does, rename/extract/restructure instead. Exceptions: complex domain WHY that names can't carry (tax law, regulatory edge cases) and high-level algorithmic strategy on already-well-factored code. Never comment WHAT; rarely HOW; occasionally WHY.
+
+## Immutability
+
+Mutation is an action, and shared mutable state is the most expensive coupling there is — Connascence of Identity. Default to immutable data and isolate mutation deliberately.
+
+- **Copy-on-write for data you own.** To "change" a value, return a modified copy — never mutate an argument or shared structure in place. `hash.merge(key: value)` not `hash[key] = value`; `[*list, item]` not `list << item`; `record.with(field: value)` for `Data` value objects. The caller's copy stays untouched.
+- **Defensive copy at trust boundaries.** When you accept a mutable collection from a caller you don't control, or hand internal state back out, `dup` (or `deep_dup`) so neither side can mutate the other's data through a shared reference. When you only need to stop the caller from mutating what you return, `freeze` on the way out is cheaper than copying.
+- **Freeze constants** — and prefer `# frozen_string_literal: true`. A mutable constant (`DEFAULTS = {}`) is shared across every call site; one in-place edit corrupts it everywhere.
+- **Reach for immutable value types.** `Data.define` for value objects (no setters, `#with` for copies) over `Struct` (mutable). `const` not `prop` in `T::Struct`. The type then makes "return a copy" the only move available.
+- **Beware shared mutable defaults.** A default argument or memoized class-level collection is created once and shared; mutating it leaks across calls. Build a fresh collection per call instead.
 
 ## Writing Methods
 
@@ -157,7 +163,7 @@ The loop exits when the verifier returns zero new FAILs. Then ask: *is this the 
 - **Encapsulate conditionals.** `if filing.active_california_filing?` not `if filing.state_code == 'CA' && filing.period_end > Date.today`.
 - **Hide instance variables behind `attr_reader`.** Never raw `@variables` in method bodies.
 - **Default to private visibility.** Public methods are your API contract.
-- **Favor functional patterns for transformations.** `map`/`select`/`reduce`/`filter_map`/`transform_values`/`each_with_object` over imperative loops with mutation. Prefer immutable data: `freeze` constants, use `const` in T::Struct.
+- **Favor functional patterns for transformations.** `map`/`select`/`reduce`/`filter_map`/`transform_values`/`each_with_object` over imperative loops with mutation.
   - Yes: `filings.select(&:active?).map(&:total_tax)`
   - No: `result = []; filings.each { |f| result << f.total_tax if f.active? }; result`
 - **Respect Demeter.** One dot fine, two dots smell, three dots problem. Tell, don't ask.
@@ -175,7 +181,7 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 - **`T.nilable` for nullable values.** Handle nilability explicitly — don't return nil and hope callers check. Avoid nil where possible.
 - **`T.untyped` is a code smell — use it only at real boundaries.** Acceptable: inputs from untyped gems, deserialized JSON, ActiveRecord attributes on `typed: false` models. Not acceptable: known internal structures where you could use `T.type_alias`, `T::Struct`, or explicit tuple types like `[String, Date, Date]`. If you know the shape, type it. Document WHY with an inline comment every time you use `T.untyped`.
 - **Use `T.unsafe` sparingly.** Document WHY with an inline comment every time.
-- **`T.must` is a code smell.** It's a "trust me bro" contract that suppresses nilability warnings without handling the nil case. Too often developers add `T.must` because a value *shouldn't* be nil — but it can be, and `T.must` just converts a type error into a runtime crash. Before using `T.must`, prove the value truly cannot be nil. If it CAN be nil, handle it explicitly (`raise` with context, return early, use a default). Only use `T.must` when Sorbet's type narrowing has a genuine blind spot and you can articulate why nil is impossible.
+- **`T.must` is a code smell.** It suppresses a nilability warning without handling nil — converting a type error into a runtime crash. Before using it, prove nil is truly impossible; if nil *can* happen, handle it (`raise` with context, return early, default). Only use `T.must` for a genuine Sorbet narrowing blind spot you can articulate.
 - **Abstract base classes are fine** when using `T::AbstractUtils` — they serve as enforced contracts.
 - **Don't overload T::Enum with metadata.** Enums are dumb identifiers. If variants need per-variant data or behavior, use `sealed!` + `T::Struct` variants instead.
 - **Use `sealed!` for sum types** where each variant carries different data. Use `T.absurd` in the else branch for exhaustiveness.
@@ -214,7 +220,7 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 - **If testing is hard, the design is wrong.** Use test pain as design feedback.
 - **Before writing a new spec file, check if existing specs already cover it.** Prefer adding examples to an existing spec over creating a standalone file. Duplicate coverage is maintenance debt.
 - **Don't assert what Sorbet already proves.** If a field is `typed: strict` and non-nilable, don't write `expect(x).to be_present` — Sorbet guarantees it at compile time. Don't guard against nil on non-nilable types.
-- **Run specs focused, not whole files.** During the Red→Green loop, run only the example or file under work (`rspec path/to/spec.rb:42`), never the full suite — full runs belong at the verify gate. A Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, paid every iteration. If a full spec file proves large or slow (50+ examples, or tens of seconds), record a memory noting that spec is large so future sessions run it focused from the start.
+- **Run specs focused, not whole files.** During the Red→Green loop run only the example/file under work (`rspec path/to/spec.rb:42`); full runs belong at the verify gate — a Rails boot is the biggest per-cycle cost. If a spec file is large/slow (50+ examples), record a memory so future sessions run it focused from the start.
 
 ### TDD Sequencing (follows the Quality Loop's Red → Green → Refactor cycle)
 
@@ -240,7 +246,7 @@ For advanced features (sealed!, generics, T.attached_class, T.bind, T.proc, etc.
 
 ## Anti-Patterns
 
-Flag any smell from the **Smells** table in the quality checklist (`~/.claude/skills/ruby-programming/references/quality-checklist.md`). The checklist is the canonical list — don't maintain a separate copy here.
+Flag any smell from the **Smells** table in the quality checklist (`${CLAUDE_PLUGIN_ROOT}/skills/ruby-programming/references/quality-checklist.md`). The checklist is the canonical list — don't maintain a separate copy here.
 
 ## Writing About Code
 
@@ -250,7 +256,7 @@ Commit messages, PR descriptions, and code comments written by this plugin. If t
 - Succinct — 40-80 chars.
 - Lead with WHY, not WHAT. "Fix the N+1 in scheduling query" not "update scheduling query to use includes."
 - Prose body when the diff isn't self-explanatory. First person, active voice.
-- The simpler the change, the simpler the message. 
+- The simpler the change, the simpler the message.
 - Verbosity scales with novelty: version bumps get one-liners, architectural changes get paragraphs.
 
 ### PR descriptions
@@ -264,17 +270,3 @@ Commit messages, PR descriptions, and code comments written by this plugin. If t
 - Don't fill template sections with filler. Blank is better than fluff.
 - Don't describe testing methodology unless it's unusual or novel. "With specs" or blank.
 - Don't mention linting, type checking, or CI passing as accomplishments.
-
-## Sources
-
-Design principles drawn from:
-- Practical Object-Oriented Design in Ruby (Metz)
-- 99 Bottles of OOP (Metz & Owen)
-- Polished Ruby Programming (Evans)
-- Eloquent Ruby (Olsen)
-- Clean Code / Clean Architecture / The Clean Coder (Martin)
-- The Pragmatic Programmer (Hunt & Thomas)
-- The Complete Guide to Rails Performance (Berkopec)
-- A Philosophy of Software Design (Ousterhout)
-- Working Effectively with Legacy Code (Feathers)
-- Design Patterns in Ruby (Olsen)

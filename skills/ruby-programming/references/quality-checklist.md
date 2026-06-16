@@ -21,6 +21,7 @@ Read this during the **Verify** step (Step 8) of the Quality Loop and when revie
 - [ ] Methods ~10-15 lines; longer = extract
 - [ ] Keyword arguments for 2+ parameters
 - [ ] Transformations use functional methods (`map`/`select`/`reject`/`filter_map`/`transform_values`/`each_with_object`) — no imperative loops building arrays via `<<` or mutating accumulators
+- [ ] No in-place mutation of arguments or shared/constant state (copy-on-write; defensive copy at trust boundaries)
 
 ## Object Design
 
@@ -94,6 +95,7 @@ Read this during the **Verify** step (Step 8) of the Quality Loop and when revie
 | New spec file for tests that fit existing spec | Merge into existing spec |
 | Boolean field as type discriminator for sibling fields | Sealed module / sum type with typed variants — each variant carries only its data |
 | Domain concept as raw primitive (money as `Integer`, date range as two `Date` fields) | Extract value object (`T::Struct` or `Data`) encapsulating the concept |
+| In-place mutation of a caller-supplied or shared/constant object (`arg << x`, `hash[k] = v` on a passed-in hash, editing a frozen-less constant) | Copy-on-write (copy → modify → return) or defensive copy at the boundary |
 | String/symbol/integer as type code (`status: 'active'`, `type: :admin`) | `T::Enum`, enum, or class hierarchy |
 
 ## Design Shapes (flag for parent agent review)
@@ -110,6 +112,8 @@ Flag these if observed. **Do not recommend specific patterns** — the parent ag
 | Method wraps another just to add logging/retry/auth/metrics | Possible decorator candidate — see Shape 9 |
 | 3+ sequential steps with `return if error` / nested conditionals after each | Possible missing Result type / railway — see Shape 11 |
 | 3+ conditions chained with `&&`/`||`, especially if reused elsewhere | Possible missing specification — see Shape 12 |
+| Real decision/computation entangled with DB, clock, network, or mutation; hard to test without stubbing the world | Possible calculation trapped in an action — see Shape 13 |
+| Identical scaffolding (begin/rescue/retry, transaction, timing) wrapped around a varying core in 2+ methods | Possible higher-order method — see Shape 14 |
 
 ## Simplicity (flag any found)
 
