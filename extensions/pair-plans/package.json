@@ -2,12 +2,13 @@
   "name": "pair-plans",
   "displayName": "Pair Plans",
   "description": "Focused sidebar view for .pair-plans/ folders in your workspace.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "jon-grenning",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jon-grenning/pair-plans-vscode"
+    "url": "https://github.com/jtgrenz/ruby-programming.git",
+    "directory": "extensions/pair-plans"
   },
   "engines": {
     "vscode": "^1.85.0"
