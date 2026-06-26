@@ -1,0 +1,61 @@
+{
+  "name": "pair-plans",
+  "displayName": "Pair Plans",
+  "description": "Focused sidebar view for .pair-plans/ folders in your workspace.",
+  "version": "0.0.2",
+  "publisher": "jon-grenning",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jon-grenning/pair-plans-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pairPlans",
+          "title": "Pair Plans",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "pairPlans": [
+        {
+          "id": "pairPlansView",
+          "name": "Pair Plans"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pairPlans.refresh",
+        "title": "Refresh Pair Plans",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pairPlans.refresh",
+          "when": "view == pairPlansView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "pairPlansView",
+        "contents": "No .pair-plans folder found in the open workspace."
+      }
+    ]
+  }
+}
