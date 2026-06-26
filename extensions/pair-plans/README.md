@@ -23,16 +23,16 @@ Works in both VS Code and Cursor (Cursor is a VS Code fork using the same extens
 
 ## Install
 
-The packaged `.vsix` is not checked in (it's gitignored), so build it first, then install the result:
+The `.vsix` is gitignored, so cloning the repo gives you source, not a prebuilt package. Grab the packaged `.vsix` from the [Releases page](https://github.com/jtgrenz/ruby-programming/releases) instead, then install it:
 
 ```bash
-npx @vscode/vsce package                              # produces pair-plans-<version>.vsix
-
 cursor --install-extension pair-plans-0.0.2.vsix      # Cursor
 code   --install-extension pair-plans-0.0.2.vsix      # VS Code
 ```
 
-Or via the UI: **Extensions** panel → `…` menu → **Install from VSIX…**, pick the built `.vsix`, then reload the window.
+Or via the UI: **Extensions** panel → `…` menu → **Install from VSIX…**, pick the downloaded file, then reload the window.
+
+Prefer to build it yourself? See [Build](#build) below.
 
 ## Build
 
