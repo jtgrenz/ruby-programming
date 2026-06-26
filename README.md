@@ -101,6 +101,12 @@ When existing code doesn't have the seams to receive new behavior cleanly, the D
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
 
+## Pair Plans extension (VS Code / Cursor)
+
+`/pair` writes its roadmap and per-phase plans into a `.pair-plans/` folder that's deliberately left uncommitted — working docs and session-handoff state, not team artifacts. The companion **Pair Plans** extension gives those files a dedicated sidebar view, so they stay one click away during a session without ending up in your commits.
+
+It lives in [`extensions/pair-plans/`](extensions/pair-plans/). Grab the `.vsix` from the [Releases page](https://github.com/jtgrenz/ruby-programming/releases) and install it (`cursor --install-extension` / `code --install-extension`), or see the [extension README](extensions/pair-plans/README.md) for the full rundown.
+
 ## Sources
 
 The skill's principles draw from:
