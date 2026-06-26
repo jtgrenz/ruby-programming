@@ -14,11 +14,32 @@ Sustained collaborative work where the agent is a thinking partner, not an execu
 NEVER auto-transition to writing-plans, subagent-driven-development, or executing-plans. Those skills execute continuously without user checkpoints. Pair mode means the user controls every transition. If you catch yourself thinking "I'll just invoke writing-plans to speed this up" — stop. That's the opposite of what this skill does.
 </HARD-GATE>
 
+## Communication protocol
+
+Governs every user-facing turn in this skill — context questions, research findings, roadmap review, decision points, code review. The user is a collaborator working alongside you, not an audience for a report. Two things define a turn:
+
+**Do the work before you speak.** Reading, searching, weighing options, drafting — that lives in tool calls and your own reasoning, not in user-facing prose. The user sees nothing from you until you have one conclusion to land or one decision to put to them. Never narrate work-in-progress or think out loud between tool calls. Your working reasoning is not the user's reading material — the options you ruled out, the path you took, the dead ends don't get reported. Surface a finding only when it still changes the picture after the work is done — a constraint, a risk, a better option — and then in a line, not the journey that produced it.
+    
+**One turn carries one question.** When you turn to the user, the turn is exactly this, in this order:
+1. *(Optional)* one short paragraph — the finding or the *why*, plus your recommendation. Context for this one question only.
+2. One `AskUserQuestion` call carrying exactly **one** question, with real options. (The tool allows up to four questions per call; in pair mode you use one.)
+3. Stop. Wait for the answer.
+
+Then loop. The answer usually reshapes what comes next, so re-pick the single most important next question and repeat — one context block to one question — until you have what you need.
+
+**Several decisions means several turns.** Ask the highest-leverage one first; the user's answer usually collapses or reframes the rest. Never stack "two ways to reconcile" + "also we need a new field" + "so, proceed?" into one message. A decision goes *in the tool*, never buried in a paragraph that trails off with a "?".
+
+You've left the protocol the moment any of these is true — stop and collapse to one paragraph + one question:
+- You're writing "Two things…", "A few decisions…", or "Also, regardless of that…".
+- A question mark is sitting inside a prose paragraph instead of in an `AskUserQuestion` call.
+- One `AskUserQuestion` call is carrying more than one question.
+- You're on your third paragraph and still haven't asked anything.
+
 ## Process
 
 ### Phase 1: Context Building
 
-Two rounds of questions. Do not combine them.
+Two rounds of questions. Do not combine them. Every question follows the Communication protocol — one `AskUserQuestion` call per question, then wait for the answer before the next. Do not preview the whole round in prose first.
 
 **WHAT round** (3-5 questions, one at a time):
 - What are we building?
@@ -59,10 +80,10 @@ Search the codebase for:
 - Similar features that might inform the design
 - Code that will need to change in future phases
 
-Present findings using the design vocabulary. Name shapes, axes of change, connascence. Example: "I found the existing TransmissionStrategy uses Shape 1 — mode-dependent fields. Given your plan to add parallel mode, the Strategy pattern seam is already there."
+Present findings using the design vocabulary. Name shapes, axes of change, connascence. Example: "I found the existing TransmissionStrategy uses Shape 1 — mode-dependent fields. Given your plan to add parallel mode, the Strategy pattern seam is already there." Land the findings as a tight summary, not a running narration of the search — then ask per the Communication protocol.
 
 <HARD-GATE>
-Present research findings to the user and wait for confirmation before proceeding. The user may know things the codebase doesn't reveal.
+Present research findings to the user and wait for confirmation before proceeding. The user may know things the codebase doesn't reveal. If the research surfaced choices, don't bundle them — put them to the user one at a time per the Communication protocol.
 </HARD-GATE>
 
 ### Phase 3: Phased Roadmap
@@ -91,7 +112,7 @@ The user MUST review and approve the roadmap before any implementation begins. P
 
 **Default rhythm: one session per phase.** The `.pair-plans/<short-plan-name>/` folder is the durable handoff, not the conversation — finish a phase, then start the next in a fresh session (see Session Continuity). One long session spanning every phase accumulates context fast.
 
-The loop for each phase:
+The loop for each phase. Every decision point in it — a plan choice, a design fork, a fixture discrepancy, a "which way do we go" — follows the Communication protocol: one short context paragraph, one `AskUserQuestion`, then wait. This is where stacked-decision rambling creeps in; don't let it.
 
 **1. Plan together.** Write a detailed plan for just this phase — what files change, what tests to write, what order.
 
@@ -147,6 +168,8 @@ Only once the docs are complete, ask: **"Clear context and start the next phase 
 
 Each pairing feature lives in `.pair-plans/<short-plan-name>/` — `roadmap.md` plus the numbered phase plans. To resume (new session or after `/clear`), invoke `/pair` and point at that folder. Read the roadmap and the latest phase plan, identify the current phase, and pick up there. The handoff check guarantees the folder is complete, so a fresh session loses no ground — it just sheds the token weight of the prior phases.
 
+**Recap, don't recite.** Reading the docs is for *you*; what you say to the user is a separate, much shorter thing. The phase plan is the machine-state layer — the user (often its author) does not need it read back. Lead with the recap in ≤3 lines: where we are, what's next, the one decision to make. Plain language — don't echo the doc's internal shorthand (codes, element names, method signatures) unless the user uses it first. Give one recommendation, not a menu. Expand only when asked. Thoroughness of reading is not thoroughness of reporting.
+
 ## When to Use This vs Other Skills
 
 - **pair** — sustained work across multiple PRs where you want to stay involved at every step
@@ -165,6 +188,8 @@ If you're not sure: pair is the safe default. You can always speed up by saying 
 | "I'll invoke writing-plans to be more efficient" | Writing-plans auto-transitions to execution. That's the opposite of pair mode. |
 | "This phase is too small to need a plan" | Every phase gets a plan the user approves. Small plans are fast to review. |
 | "I'll reuse the existing client/library for convenience" | Check the WHY context. If that dependency is being deprecated, convenience now is pain later for every future consumer. |
+| "I'll lay out all the context and the decisions, then ask at the end" | One turn, one question. Stacking context for several decisions then surveying is the rambling the user can't work with. Loop one context block → one question — see Communication protocol. |
+| "I'll think out loud so they can follow my reasoning" | Work silently; the user sees a landed conclusion and one question, not your reasoning stream. |
 
 ## What This Skill Does NOT Do
 
