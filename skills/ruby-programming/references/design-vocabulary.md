@@ -147,15 +147,15 @@ These are heuristics that sound reasonable but lead to bad design. When you catc
 
 ## Applying Vocabulary in Practice
 
-During **Design** (Quality Loop Step 1):
+During design:
 - Identify the axes of change before writing code
 - Name the seams — where will future modifications happen?
 - Check if the problem shape matches any trigger in `design-shapes.md`
 - State your recommendation: "I see [shape], which suggests [pattern], because [axis of change]"
 
-During **Refactor** (Quality Loop Step 4):
+During refactoring:
 - After mechanical cleanup, do a design pass
-- Ask: did the shameless green reveal a shape that wasn't visible in the spec?
+- Ask whether the working implementation revealed a shape that was not visible in the spec.
 - Apply the deletion test to any proposed extraction
 - Check: is each module deep (absorbing complexity) or shallow (adding indirection)?
 

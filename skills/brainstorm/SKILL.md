@@ -1,7 +1,6 @@
 ---
 name: brainstorm
-description: Use when designing Ruby features, planning architecture, or starting implementation work that involves Ruby design decisions. Combines design pattern analysis with structured brainstorming.
-disable-model-invocation: true
+description: Use when designing Ruby features, planning architecture, or starting implementation work that involves Ruby design decisions. Combines design pattern analysis with structured brainstorming. Not for editing code — bounded edits use `pair`, approved plans use `execute-plan`.
 ---
 
 # Ruby Design Brainstorm
@@ -13,9 +12,10 @@ Structured design exploration with Ruby-specific pattern recognition. Enhances t
 ### Step 1: Load Design Knowledge
 
 Read these before doing anything else:
-- `${SKILL_DIR}/../ruby-programming/references/design-shapes.md` — 12 shape triggers
-- `${SKILL_DIR}/../ruby-programming/references/design-vocabulary.md` — terms, connascence, rejected framings
-- `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md` — when to refactor existing code before starting TDD
+- `../ruby-programming/references/design-vocabulary.md` — terms, connascence, rejected framings
+- `../ruby-programming/references/preparatory-refactoring.md` — when existing structure needs work before a feature
+
+For shapes, list the `## Shape` headings in `../ruby-programming/references/design-shapes.md`, then read only the shapes whose triggers plausibly match the problem. Do not load the whole file up front.
 
 ### Step 2: Brainstorm Process
 
@@ -31,7 +31,7 @@ Read these before doing anything else:
 **Before presenting approaches** (whether from superpowers or self-driven), apply design analysis to each approach:
 
 - **Axes of change**: What varies independently? Each axis suggests a seam.
-- **Shape triggers**: Check all 12 shapes against the problem. Name any that match.
+- **Shape triggers**: Check the documented shapes against the problem. Name any that match.
 - **Forward question**: "If a new variant appears, how many files change?" for each approach.
 - **Threshold gates**: Check before recommending any pattern. Don't over-engineer.
 - **Preparatory refactoring**: Does the existing code need restructuring before the new feature? If yes, how well can you see the structure? If it's mostly there but noisy, note that tidying will likely reveal the seam. If you're lost, note that scratch refactoring is needed first. If the structure is clear, identify the seam type and enabling point. If approaches differ on prep-refactoring needs (one requires it, another doesn't), call it out as a trade-off.
@@ -62,6 +62,8 @@ Use the design vocabulary precisely — "axes of change", "seam", "mode", "varia
 **If superpowers:brainstorming is available**, return to it for: presenting design section-by-section, writing spec doc, spec self-review, user review gate, transition to writing-plans.
 
 **If not available**, present the recommended approach, get user approval, and write a spec doc to `docs/specs/` or the project's preferred location.
+
+Any implementation plan produced after brainstorming receives one review using `../pair/agents/plan-reviewer.md` before approval or execution. `execute-plan` enforces this boundary if the planning workflow cannot.
 
 ## What This Skill Does NOT Do
 

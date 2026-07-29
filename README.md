@@ -1,12 +1,21 @@
 # ruby-programming
 
-Ruby design pattern recognition, quality enforcement, and structured development workflows for Claude Code.
+Ruby design guidance and proportional development workflows for Claude Code and Codex.
 
-Teaches Claude to recognize structural patterns (design shapes) in Ruby code, check threshold gates before recommending changes, and use precise vocabulary (connascence, SOLID) instead of vague "make it extensible" advice.
+The package separates collaborative shaping from autonomous delivery: pairing makes one bounded edit and stops for review; explicit plan execution owns TDD and completion checks.
 
 ## Installation
 
-### From GitHub (recommended)
+### Codex
+
+```bash
+codex plugin marketplace add jtgrenz/ruby-programming
+codex plugin add ruby-programming@ruby-programming
+```
+
+Start a new thread after installing or updating so Codex loads the current skills.
+
+### Claude Code from GitHub
 
 ```bash
 # Add as a marketplace source (one-time)
@@ -19,7 +28,7 @@ claude plugin install ruby-programming
 claude plugin enable ruby-programming
 ```
 
-### From a local clone
+### Claude Code from a local clone
 
 ```bash
 # Clone the repo
@@ -36,7 +45,7 @@ claude plugin enable ruby-programming
 
 ### Verify installation
 
-Start a new Claude Code session. You should see these skills available:
+Start a new Claude Code session or Codex thread. You should see:
 - `ruby-programming:ruby-programming` (ambient — auto-loads for Ruby work)
 - `ruby-programming:brainstorm`
 - `ruby-programming:execute-plan`
@@ -45,19 +54,19 @@ Start a new Claude Code session. You should see these skills available:
 
 ## Skills
 
-| Skill | Type | Trigger |
-|-------|------|---------|
-| `ruby-programming` | Ambient | Auto-loads when working with Ruby code |
-| `brainstorm` | Invokeable | `/ruby-programming:brainstorm` |
-| `execute-plan` | Invokeable | `/ruby-programming:execute-plan` |
-| `ruby-review` | Invokeable | `/ruby-programming:ruby-review` |
-| `pair` | Invokeable | `/ruby-programming:pair` |
+| Skill | Type | Invoke |
+|-------|------|--------|
+| `ruby-programming` | Ambient | Loads for Ruby work and selects shaping, delivery, or review |
+| `brainstorm` | Invokeable | Claude: `/ruby-programming:brainstorm`; Codex: `$ruby-programming:brainstorm` |
+| `execute-plan` | Invokeable | Claude: `/ruby-programming:execute-plan`; Codex: `$ruby-programming:execute-plan` |
+| `ruby-review` | Invokeable | Claude: `/ruby-programming:ruby-review`; Codex: `$ruby-programming:ruby-review` |
+| `pair` | Invokeable | Claude: `/ruby-programming:pair`; Codex: `$ruby-programming:pair` |
 
 ## What it does
 
 ### Design Shape Recognition
 
-The skill teaches Claude to recognize 14 structural patterns ("shapes") in code that suggest a design pattern wants to emerge. Each shape has a **threshold gate** — conditions that must ALL be true before recommending the pattern. This prevents over-engineering.
+The skill teaches coding agents to recognize 14 structural patterns ("shapes") in code that suggest a design pattern wants to emerge. Each shape has a **threshold gate** — conditions that must ALL be true before recommending the pattern. This prevents over-engineering.
 
 ### Design Vocabulary
 
@@ -74,36 +83,30 @@ All terms are explained with parenthetical definitions on first use — the skil
 
 A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier agent during execute-plan, and by ruby-review for PR feedback.
 
-### The Quality Loop
+### Proportional workflow
 
-The 8-step development cycle that all skills follow:
-
-1. **Design** — shape triggers, sorbet type triggers, seam identification, preparatory refactoring check
-2. **Red** — one failing test
-3. **Green** — shameless green (simplest code that passes)
-4. **Refactor** — mechanical pass then design pass
-5. **Simplify** — expression-level compression, name-at-call-site audit, extraction justification. Loops until clean.
-6. **Next test** — repeat 2-5
-7. **Pre-flight sweep** — binary mechanical checks (T.must comments, no T.untyped, keyword args, methods under 15 lines, etc.)
-8. **Verify** — fresh-eyes ruby-verifier agent. Gate before the user sees anything.
+- **Pairing/shaping:** make the requested edit, inspect the diff, and stop for direction.
+- **Behavior delivery:** use a focused failing example and the smallest coherent implementation.
+- **Mechanical work:** establish coverage for the behavior being preserved, then make the known change directly; do not force a failing test for existing behavior.
+- **Verification:** review every written plan once, then run focused checks while working and one Ruby verifier pass on the stable implementation before commit.
 
 ### Preparatory Refactoring
 
-When existing code doesn't have the seams to receive new behavior cleanly, the Design step (Step 1) identifies this and triggers a refactoring-first approach: restructure in a separate commit (zero behavior change, all tests green), then start TDD against the clean structure. Signals include scattered related methods in a bloated host class, repeated conditionals on the same discriminator, and painful test setup from coupling. Based on Feathers (Working Effectively with Legacy Code), Fowler (Refactoring), and Beck ("make the change easy, then make the easy change").
+When existing code doesn't have the seams to receive new behavior cleanly, the design check identifies this and triggers a refactoring-first approach: restructure in a separate commit (zero behavior change, all tests green), then build the new behavior against the clean structure. Signals include scattered related methods in a bloated host class, repeated conditionals on the same discriminator, and painful test setup from coupling. Based on Feathers (Working Effectively with Legacy Code), Fowler (Refactoring), and Beck ("make the change easy, then make the easy change").
 
 ## How the skills compose
 
-- **`ruby-programming`** (ambient) auto-loads design shapes and vocabulary into every Ruby session
+- **`ruby-programming`** (ambient) chooses collaborative shaping, autonomous delivery, or read-only review before applying Ruby guidance
 - **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis, threshold gates, and preparatory refactoring assessment
-- **`execute-plan`** wraps `superpowers:subagent-driven-development` with Shameless Green, the full quality loop, and the ruby verifier
-- **`ruby-review`** does a design pass (shapes, connascence, SOLID, missed prep-refactoring), dispatches the ruby verifier, and complements the built-in `/code-review` for the structural scan (bugs, CLAUDE.md compliance, git history)
-- **`pair`** is for sustained collaborative work across multiple PRs. Socratic context-building (short-term AND long-term scope), phased roadmap, then iterative implementation where the user reviews every commit. Uses the ruby verifier and TDD cycle but never auto-executes.
+- **`execute-plan`** reviews an unreviewed plan before execution, then completes it with proportional TDD and one final Ruby and plan-compliance review
+- **`ruby-review`** does a Ruby design pass (shapes, connascence, SOLID, and missed preparatory refactoring) alongside the host's general code review
+- **`pair`** presents bounded shaping diffs early, reviews explicit plans once, and runs Ruby verification only after direction stabilizes and before commit
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
 
 ## Pair Plans extension (VS Code / Cursor)
 
-`/pair` writes its roadmap and per-phase plans into a `.pair-plans/` folder that's deliberately left uncommitted — working docs and session-handoff state, not team artifacts. The companion **Pair Plans** extension gives those files a dedicated sidebar view, so they stay one click away during a session without ending up in your commits.
+When explicitly asked for a phased roadmap or durable handoff, `pair` writes working docs into an uncommitted `.pair-plans/` folder. The companion **Pair Plans** extension gives those files a dedicated sidebar view.
 
 It lives in [`extensions/pair-plans/`](extensions/pair-plans/). Grab the `.vsix` from the [Releases page](https://github.com/jtgrenz/ruby-programming/releases) and install it (`cursor --install-extension` / `code --install-extension`), or see the [extension README](extensions/pair-plans/README.md) for the full rundown.
 

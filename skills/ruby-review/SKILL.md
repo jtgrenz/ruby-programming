@@ -1,12 +1,12 @@
 ---
 name: ruby-review
-description: Use when reviewing Ruby code, PRs, or local changes. Adds design shape analysis, connascence evaluation, and the Ruby quality checklist. Run alongside /code-review for full coverage.
+description: Use when reviewing Ruby code, PRs, or local changes for design shape, coupling, and Ruby-specific quality.
 allowed-tools: Bash(gh pr view *), Bash(gh pr diff *), Bash(gh api *), Bash(command git diff *), Bash(command git log *), Bash(command git blame *), Read, Grep, Glob, Agent
 ---
 
 # Ruby Code Review
 
-Design-focused code review for Ruby. Checks design shapes, threshold gates, connascence, and runs the quality checklist. Complements the built-in `/code-review` (structural scan) — run both for full coverage.
+Design-focused code review for Ruby. Check design shapes, threshold gates, connascence, and the quality checklist. Complement this with the runtime's general code review when a structural bug scan is also needed.
 
 ## Process
 
@@ -23,12 +23,13 @@ Determine the review target from the user's request:
 ### Step 2: Design Pass (do this FIRST, before the structural scan)
 
 Read these references once:
-- `${SKILL_DIR}/../ruby-programming/references/design-shapes.md`
-- `${SKILL_DIR}/../ruby-programming/references/design-vocabulary.md`
-- `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md`
+- `../ruby-programming/references/design-vocabulary.md`
+- `../ruby-programming/references/preparatory-refactoring.md`
+
+For shapes, list the `## Shape` headings in `../ruby-programming/references/design-shapes.md`, then read only the shapes whose triggers plausibly match the diff. Do not load the whole file up front.
 
 Then review the diff with design eyes:
-- **Shape triggers**: Check all 12 shapes against the changed code. Name any that match.
+- **Shape triggers**: Check all documented shapes against the changed code. Name any that match.
 - **Threshold gates**: For each shape found, check if the threshold is crossed. Don't recommend patterns that aren't warranted.
 - **Forward question**: "If a new variant appears, how many files change?" for any polymorphism-adjacent code.
 - **Connascence**: Name the coupling type the change creates or eliminates.
@@ -44,45 +45,20 @@ Then review the diff with design eyes:
 
 ### Step 3: Run Ruby Verifier
 
-After completing the design pass, dispatch the Ruby verifier for mechanical quality checks:
+After completing the design pass, run the shared verifier for mechanical quality checks: `../ruby-programming/agents/ruby-verifier.md`. Dispatch it as a fresh subagent when the runtime supports one; otherwise apply that prompt directly. Do not restate its rules or output format here — a second copy drifts from the original.
 
-**Ruby verifier** — Dispatch a `general-purpose` background agent with this prompt:
-
-```
-You are a Ruby code quality verifier. Read every file listed below, then audit
-against the quality checklist that follows.
-
-## Files to Review
-[LIST THE CHANGED FILES]
-
-## Quality Checklist
-[PASTE THE FULL CONTENTS OF ${SKILL_DIR}/../ruby-programming/references/quality-checklist.md]
-
-## Rules
-- Be strict. When in doubt, FAIL.
-- Don't infer intent. Flag poor names even if you can guess what they meant.
-- Don't skip items. Every checklist item gets a verdict.
-- Don't suggest fixes. Just identify problems.
-- If a checklist item doesn't apply, mark PASS with "(n/a)".
-
-## Output Format
-### FAIL (N items)
-- [ ] **[item]** — [one-line reason] (`file.rb:line`)
-
-### PASS (N items)
-- [x] **[item]**
-```
-
-Read the quality checklist file once at the start and reuse for each dispatch.
+Hand it the changed file paths. For a remote PR, paste the diff text instead: the working tree may hold unrelated changes, so local paths would resolve to the wrong content. Checking the PR out first (`gh pr checkout <number> --repo <owner>/<repo>`, which needs a clean tree) is the alternative.
 
 ### Step 4: Present Findings
 
-Combine findings from ALL three layers. Organize by severity:
+Combine the design and quality findings. Organize by severity:
 
 1. **Design concerns** (from your design pass — shapes, connascence, SOLID) — architectural issues
 2. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — mechanical issues
 
-**Remind the user:** "For the structural scan (bugs, CLAUDE.md compliance, git history), also run `/code-review`."
+Lead with actionable findings. Omit passing checklist items and process narration. Keep each finding to one compact paragraph unless the user asks for a deeper design explanation.
+
+When useful, remind the user to run the host's general review command (`/code-review` in Claude Code or `/review` in Codex) for a separate structural bug scan.
 
 When writing for a GitHub PR, wrap the design analysis in a collapsible block:
 ```markdown

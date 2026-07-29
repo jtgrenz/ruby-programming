@@ -1,13 +1,34 @@
-# Calibrating TDD Rigor to Design Certainty
+# Calibrating Rigor
 
-Calibrate the *build loop* to how certain the design is — but never the review. The code is checked against our best practices (ruby-verifier + compliance) every phase, regardless of track.
+Choose the interaction boundary before choosing a test loop.
 
-**Discovery** — the design is emerging; no validated reference. Find the shape one failing test at a time: strict per-change Red→Green→Refactor→Simplify→Pre-flight, with Shameless Green (defer abstraction until examples accumulate).
+## Interactive shaping
 
-**Transcription** — the answer is known before you start: re-deriving a verified prototype, a mechanical port, or a trivial change. Write the target shape directly (no Shameless Green), batch the build, one comprehensive spec, run it once or twice. A full spec run catches transcription errors with the same safety — one spec boot instead of N.
+Use when the user wants to inspect a direction, asks for one bounded edit, or has not requested end-to-end delivery.
 
-**Classify as Transcription** when a verified prototype or spec exists, the phase is a mechanical port/rename/move, or the change is small and obvious; **Discovery** when the design is genuinely open. When unsure, default to Discovery and drop to Transcription the moment the design stops being in question.
+- Make the requested edit.
+- Inspect the diff for accidental scope.
+- Show it and stop.
+- Check whether existing coverage protects any behavior the edit claims to preserve.
+- If coverage is inadequate, surface the gap and ask before adding a focused characterization test.
+- Do not run broad tests, lint, or reviewer agents before the user approves the direction.
 
-**Why it matters:** the dominant cost of a long run is cache reads — every micro-step is another full-context re-read, often another Rails boot. One overnight run re-deriving a verified prototype across five phases burned ~173M tokens (~94% cache reads, ~92 spec boots), almost all of it per-change micro-TDD re-deriving a known answer. The gates ran clean every pass — that review is cheap next to the build loop and is how you know the port stayed compliant. Calibrate away the build ceremony, not the review.
+A single focused check is appropriate only when requested or when the edit cannot be inspected meaningfully without it.
 
-**Unattended runs** (overnight) lean on the gates as the only safety net, so per-phase review matters more, not less — and its value there is as much honest disclosure (what wasn't wired, what wasn't run) as defect-catching.
+## Autonomous delivery
+
+Use when the user explicitly asks to finish, execute a plan, or make the change commit-ready.
+
+Classify the work:
+
+- **Behavior discovery:** Write a focused failing example, then the smallest coherent implementation. Refactor only after the contract is green.
+- **Known design:** Write the validated target shape directly. Do not re-derive it through temporary strings, hashes, or conditionals.
+- **Structural or mechanical change:** Use relevant existing coverage when it protects the observable contract. Otherwise, add a focused characterization test of current behavior and confirm it passes before the refactor. Do not manufacture a failing test for behavior that already exists.
+
+Run focused checks while implementing and broader project checks once at completion. Run `ruby-verifier` once on the stable diff; add one compliance review when a written plan governs the work. Reuse each pass until its input changes materially.
+
+## Decision test
+
+Ask: "Is the user choosing a direction, or have they delegated the outcome?"
+
+Direction → shaping. Delegated outcome → delivery. When ambiguous, shape first.

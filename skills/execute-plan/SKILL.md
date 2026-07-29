@@ -1,71 +1,54 @@
 ---
 name: execute-plan
-description: Use when executing an implementation plan for Ruby code. Wraps superpowers execution with Ruby-specific implementer guidance and design-aware verification.
-disable-model-invocation: true
+description: Use when the user explicitly delegates completion of an approved Ruby implementation plan or asks to take a well-scoped Ruby change through commit-ready verification. Not for exploratory work, bounded edits, or a direction still being chosen — those use `pair`.
 ---
 
-# Ruby Execute Plan
+# Execute a Ruby Plan
 
-Execute an implementation plan with Ruby-specific quality enforcement. The controller is lean — it orchestrates. Ruby knowledge flows through sub-agent prompts, not controller context.
+Complete the approved outcome autonomously. Keep the controller lean and reserve the expensive checks for meaningful boundaries.
 
-## Process
+## Entry gate
 
-### Step 1: Load Plan
+Require an implementation plan or an equally explicit agreed scope. If the direction is still being evaluated, return to `pair`; do not turn a shaping edit into delivery.
 
-Read the implementation plan. If no plan exists, stop and suggest using `ruby-programming:brainstorm` first.
+Before executing a written plan, confirm it received a plan-reviewer pass after its latest material revision. If not, run `../pair/agents/plan-reviewer.md` and address its findings. Obtain fresh user approval only if review changes the plan materially.
 
-### Step 2: Dispatch Execution
+Read `implementer-prompt.md` before implementation. Resolve it relative to this skill directory.
 
-**If superpowers:subagent-driven-development is available**, invoke it and follow its process with these modifications:
+## Execute
 
-1. **Implementer prompt enhancement**: When constructing each implementer subagent prompt, read `${SKILL_DIR}/implementer-prompt.md` and append its contents to the prompt. Do NOT read design-shapes.md, design-vocabulary.md, or the ruby-programming SKILL.md yourself — the implementer prompt is self-contained. You are the orchestrator, not the implementer.
+1. Inspect the current worktree and every file named by the plan.
+2. Divide work by independently reviewable outcomes, not by tiny Red/Green mechanics.
+3. Use the runtime's subagent capability only when tasks are genuinely independent or a fresh context materially helps; delegate implementation with `../ruby-programming/agents/ruby-builder.md`.
+4. Apply the behavior, known-design, or structural loop from `implementer-prompt.md`.
+5. Continue through the plan unless an unexpected decision changes scope or architecture.
 
-2. **Quality review — run BOTH reviewers in parallel**: After the spec reviewer passes, dispatch BOTH of these as background agents simultaneously:
+Do not add speculative work. When an unplanned file is required, record why it is necessary to the approved outcome.
 
-   **Superpowers code quality reviewer** — use the standard superpowers code-quality-reviewer-prompt.md as-is.
+## Verify
 
-   **Ruby verifier** — dispatch a separate `general-purpose` agent with this prompt template (fill in the file paths from the task):
+Run focused checks during implementation. At the completed plan boundary:
 
-   ```
-   You are a Ruby code quality verifier. Read every file listed below, then audit
-   against the quality checklist that follows. Report PASS/FAIL for each item.
+1. Run the relevant spec files.
+2. Run the project's required linter and type checks on changed code.
+3. Run broader suites once when project policy or cross-cutting risk requires them.
+4. Inspect the complete diff against the plan.
+5. Run `../ruby-programming/agents/ruby-verifier.md` once on the stable Ruby diff.
+6. For a written plan, run `../pair/agents/compliance-reviewer.md` once against the same diff.
 
-   ## Files to Review
-   [LIST THE FILES THE IMPLEMENTER CREATED/MODIFIED]
+Run the two final reviewers in parallel when both apply. If subagents are unavailable, apply their prompts directly. A review remains valid until its code or plan changes materially. Fix concrete failures, then rerun only affected checks and reviews; do not restart every gate after each edit.
 
-   ## Quality Checklist
-   [PASTE THE FULL CONTENTS OF ${SKILL_DIR}/../ruby-programming/references/quality-checklist.md]
+## Finish
 
-   ## Rules
-   - Be strict. When in doubt, FAIL.
-   - Don't infer intent. Flag poor names even if you can guess what they meant.
-   - Don't skip items. Every checklist item gets a verdict.
-   - Don't suggest fixes. Just identify problems.
-   - If a checklist item doesn't apply, mark PASS with "(n/a)".
+Return a concise handoff:
 
-   ## Output Format
-   ### FAIL (N items)
-   - [ ] **[item]** — [one-line reason] (`file.rb:line`)
+- completed outcome;
+- material plan deviations;
+- failed checks, or one line saying verification passed;
+- whether the work remains uncommitted.
 
-   ### PASS (N items)
-   - [x] **[item]**
-   ```
+Never stage or commit without explicit approval.
 
-   Read the quality checklist file ONCE at the start of execution and reuse its contents for each ruby verifier dispatch. Fix issues from EITHER reviewer before marking the task complete.
+## Runtime portability
 
-3. **Spec reviewer**: Use superpowers spec reviewer as-is.
-
-**If superpowers is NOT available**, execute tasks sequentially yourself:
-1. Read `${SKILL_DIR}/implementer-prompt.md` for Ruby guidance — follow it for each task
-2. After each task: dispatch a ruby verifier agent (template above)
-3. Fix all FAIL items, re-verify until clean
-
-### Step 3: Finish
-
-**If superpowers:finishing-a-development-branch is available**, invoke it.
-
-**If not**, run tests, summarize changes, and ask the user how they want to integrate.
-
-## Key Principle
-
-**Controllers orchestrate, they don't learn.** The superpowers framework handles dispatching agents, tracking tasks, and managing review loops. Ruby-specific quality (Shameless Green, design shapes, Sorbet, pre-flight) flows through sub-agent prompts — never load reference files into the controller's context. This keeps the controller lean and prevents it from confusing its orchestration role with the implementer role.
+Use capabilities available in the current runtime. Do not require Claude-specific tool names, environment variables, agent types, or Superpowers. When those facilities exist they may help, but they are not dependencies.

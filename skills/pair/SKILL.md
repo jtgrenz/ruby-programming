@@ -1,199 +1,68 @@
 ---
 name: pair
-description: Use when building a feature collaboratively across multiple PRs, when scope spans short-term delivery and long-term design, or when the user wants to stay involved and not have the agent auto-execute. Triggers on pair programming, phased implementation, multi-PR feature work, collaborative coding, "work together", "don't just build it", "stay involved".
-disable-model-invocation: true
+description: Use when the user wants to work together on code, inspect a direction before completion, make one bounded change at a time, or says pair, work together, stay involved, or show me the direction.
 ---
 
 # Pair Programming
 
-Sustained collaborative work where the agent is a thinking partner, not an executor. The user stays in the loop at every step. Work happens in phases — each phase gets its own PR, its own implementation plan, and full user review before anything is committed.
+Make the smallest useful move, show it, and let the user choose the next move.
 
-**Session hygiene.** Every loaded skill and MCP server is re-read on every turn. Before a long run, disable the ones the work won't touch (e.g. data/Jira/frontend tooling for a backend Ruby feature). One-time setup, not part of the loop.
+## Shaping
 
-<HARD-GATE>
-NEVER auto-transition to writing-plans, subagent-driven-development, or executing-plans. Those skills execute continuously without user checkpoints. Pair mode means the user controls every transition. If you catch yourself thinking "I'll just invoke writing-plans to speed this up" — stop. That's the opposite of what this skill does.
-</HARD-GATE>
+Unless the user explicitly delegates the outcome:
 
-## Communication protocol
+1. Inspect the exact scope.
+2. Make only the requested change.
+3. Check the diff for accidental scope.
+4. Show it and stop.
 
-Governs every user-facing turn in this skill — context questions, research findings, roadmap review, decision points, code review. The user is a collaborator working alongside you, not an audience for a report. Two things define a turn:
+The first review boundary is the diff, not a green suite or reviewer pass. Before direction approval, do not add adjacent improvements, silently add characterization coverage, refactor unrelated code, run broad checks, or dispatch implementation reviewers.
 
-**Do the work before you speak.** Reading, searching, weighing options, drafting — that lives in tool calls and your own reasoning, not in user-facing prose. The user sees nothing from you until you have one conclusion to land or one decision to put to them. Never narrate work-in-progress or think out loud between tool calls. Your working reasoning is not the user's reading material — the options you ruled out, the path you took, the dead ends don't get reported. Surface a finding only when it still changes the picture after the work is done — a constraint, a risk, a better option — and then in a line, not the journey that produced it.
-    
-**One turn carries one question.** When you turn to the user, the turn is exactly this, in this order:
-1. *(Optional)* one short paragraph — the finding or the *why*, plus your recommendation. Context for this one question only.
-2. One `AskUserQuestion` call carrying exactly **one** question, with real options. (The tool allows up to four questions per call; in pair mode you use one.)
-3. Stop. Wait for the answer.
+Structural edits do not create behavior, but preservation requires coverage. If existing tests protect the observable contract, preserve them; do not manufacture Red. If not, surface the gap and ask before adding the smallest characterization example. Run a focused check only when requested or when the diff alone cannot establish the move.
 
-Then loop. The answer usually reshapes what comes next, so re-pick the single most important next question and repeat — one context block to one question — until you have what you need.
+For a behavior spike, implement only the requested slice. A focused failing example may clarify the contract, but do not complete neighboring cases.
 
-**Several decisions means several turns.** Ask the highest-leverage one first; the user's answer usually collapses or reframes the rest. Never stack "two ways to reconcile" + "also we need a new field" + "so, proceed?" into one message. A decision goes *in the tool*, never buried in a paragraph that trails off with a "?".
+## Plans
 
-You've left the protocol the moment any of these is true — stop and collapse to one paragraph + one question:
-- You're writing "Two things…", "A few decisions…", or "Also, regardless of that…".
-- A question mark is sitting inside a prose paragraph instead of in an `AskUserQuestion` call.
-- One `AskUserQuestion` call is carrying more than one question.
-- You're on your third paragraph and still haven't asked anything.
+Only write a plan when the user requests an implementation plan, phased roadmap, multi-PR plan, or durable handoff:
 
-## Process
+1. Draft the requested artifact using `roadmap-template.md`, writing it to an uncommitted `.pair-plans/` directory in the user's project.
+2. Run `agents/plan-reviewer.md` once.
+3. Fix findings and rerun until it reports no problems. After that, repeat only after a material revision.
+4. Present the reviewed plan and wait for user approval before implementation.
 
-### Phase 1: Context Building
+Use a subagent when available; otherwise apply the prompt directly. Every written plan gets this review.
 
-Two rounds of questions. Do not combine them. Every question follows the Communication protocol — one `AskUserQuestion` call per question, then wait for the answer before the next. Do not preview the whole round in prose first.
+## Delivery and review
 
-**WHAT round** (3-5 questions, one at a time):
-- What are we building?
-- What exists today? Where does it live in the codebase?
-- What's the input/output? Who uses it?
-- What's the immediate deliverable?
+“Go ahead” authorizes only the bounded move under discussion. Explicit end-to-end requests such as “finish it,” “execute the plan,” or “make it commit-ready” switch to `execute-plan`.
 
-**WHY round** (3-5 questions, one at a time):
-- Why are we building this now?
-- Is this a one-off or part of a larger system?
-- What's coming in the next 1-3 months that relates to this?
-- Are there similar-but-different variants planned? (e.g., one client now, several later)
-- What would make this design wrong in 6 months?
+After the user approves the direction and the implementation reaches a stable diff:
 
-**Migration safety** — if the WHAT or WHY reveals that this work replaces or migrates an existing production system, ask:
-- How do we safely transition from the old system to the new one?
-- Can we run both in parallel to validate before cutting over?
-- What's the rollback plan if something goes wrong?
-- What does "safe to cut over" look like — how do we know the new system is ready?
+1. Run relevant tests and the project's linter on changed files.
+2. Run `../ruby-programming/agents/ruby-verifier.md` once.
+3. For plan-backed work, also run `agents/compliance-reviewer.md` once.
 
-This doesn't fire for greenfield features. It fires when you're replacing something that's live in production — especially when the work ships piecemeal across multiple PRs.
+Use subagents when available; otherwise apply the prompts directly. A pass remains valid until its input changes materially. Fix findings and rerun only the affected review.
 
-The WHY round is what prevents building something technically correct that paints you into a corner. Don't skip it — even for "simple" tasks.
+Before commit, the current diff needs a valid Ruby verifier pass; plan-backed work also needs a valid compliance pass.
 
-<HARD-GATE>
-Do NOT proceed to Phase 2 until you can answer both: "What is the immediate deliverable?" AND "What is the 3-month context this lives in?" If the user says "I don't know" to the future questions, that's a valid answer — document it as "future direction unknown, optimizing for flexibility" and proceed.
-</HARD-GATE>
+## Interaction
 
-### Phase 2: Codebase Research
+Ask one short question only when its answer changes the next edit. On resume, inspect the live worktree before roadmap notes.
 
-Read these before searching:
-- `${SKILL_DIR}/../ruby-programming/references/design-shapes.md`
-- `${SKILL_DIR}/../ruby-programming/references/design-vocabulary.md`
+Use at most five short lines:
 
-Search the codebase for:
-- Existing patterns related to what we're building
-- Interfaces the new code will interact with
-- Similar features that might inform the design
-- Code that will need to change in future phases
+```text
+Changed: [bounded change]
+Scope: [material caveat; otherwise omit]
+Next: [one question]
+```
 
-Present findings using the design vocabulary. Name shapes, axes of change, connascence. Example: "I found the existing TransmissionStrategy uses Shape 1 — mode-dependent fields. Given your plan to add parallel mode, the Strategy pattern seam is already there." Land the findings as a tight summary, not a running narration of the search — then ask per the Communication protocol.
+## Boundaries
 
-<HARD-GATE>
-Present research findings to the user and wait for confirmation before proceeding. The user may know things the codebase doesn't reveal. If the research surfaced choices, don't bundle them — put them to the user one at a time per the Communication protocol.
-</HARD-GATE>
+Never stage or commit without explicit approval.
 
-### Phase 3: Phased Roadmap
+Before presenting, remove files, tests, cleanup, and explanation that do not serve the requested move.
 
-Create a living roadmap document using `${SKILL_DIR}/roadmap-template.md`. Scale the document to the work — a 2-phase bug fix series gets a short doc, a 6-phase feature gets the full treatment.
-
-Key constraints:
-- Each phase targets <600 lines of code changes (excluding auto-generated fixtures, which get their own commit)
-- Each phase gets its own PR
-- YAGNI for implementation, but leave seams for known future work. Ship stubs (raise/no-op) to prove extension points work.
-- Include "revisit when" conditions for design decisions — so future sessions know when assumptions expire
-
-**Stay at the WHAT/WHY level.** The roadmap defines what each phase delivers and why in that order — not how it's implemented. Design shape observations are useful when they inform phasing: "This looks like Shape 1 — there's a protocol-level concern and an agency-specific concern, which suggests separating them into different phases." But detailed implementation decisions (specific classes, interfaces, response types) belong in the per-phase implementation plan in Phase 4, not here.
-
-**Build vs. reuse vs. refactor.** For each component the roadmap mentions, explicitly note whether it's: (a) new code to build, (b) existing code to reuse as-is, or (c) existing code that needs refactoring or replacement. Pay special attention to dependencies on systems mentioned in the WHY context — if something is being deprecated or migrated away from, don't build new dependencies on it. Call out the dependency and flag whether it needs a replacement.
-
-Save to `.pair-plans/<short-plan-name>/roadmap.md`, where `<short-plan-name>` is a kebab-case slug for the feature (e.g. `withholding-period-totals`). This folder is the single home for everything this pairing feature needs — the roadmap and every phase plan live together so a future session can resume from one place. These are uncommitted working documents; the PR description, not the roadmap, is the durable team-facing artifact.
-
-**Plan review.** Before presenting the roadmap to the user, dispatch a `general-purpose` agent using the plan-reviewer prompt (see `${SKILL_DIR}/agents/plan-reviewer.md`). Give it the WHAT/WHY summary and the proposed roadmap. Fix any issues the reviewer finds before presenting to the user.
-
-<HARD-GATE>
-The user MUST review and approve the roadmap before any implementation begins. Present it and ask: "Does this phasing make sense? Should we adjust anything before starting Phase 1?" Wait for explicit approval.
-</HARD-GATE>
-
-### Phase 4+: Iterative Phase Execution
-
-**Default rhythm: one session per phase.** The `.pair-plans/<short-plan-name>/` folder is the durable handoff, not the conversation — finish a phase, then start the next in a fresh session (see Session Continuity). One long session spanning every phase accumulates context fast.
-
-The loop for each phase. Every decision point in it — a plan choice, a design fork, a fixture discrepancy, a "which way do we go" — follows the Communication protocol: one short context paragraph, one `AskUserQuestion`, then wait. This is where stacked-decision rambling creeps in; don't let it.
-
-**1. Plan together.** Write a detailed plan for just this phase — what files change, what tests to write, what order.
-
-Check whether existing code needs preparatory refactoring before the feature work (see `${SKILL_DIR}/../ruby-programming/references/preparatory-refactoring.md`). If yes, follow the Prep-Refactor Path:
-- **Structure is clear** → locate the seam, plan the prep-refactor as a separate commit at the start of the phase.
-- **Structure is messy but emerging** → schedule tidying (small committed improvements) at the start of the phase until the seam becomes visible.
-- **Lost** → schedule scratch refactoring first (throwaway branch to learn the structure — save learnings to `.pair-plans/<short-plan-name>/scratch-notes.md`, then discard the branch). Once the structure is visible, locate the seam.
-
-Save the plan as a numbered markdown file in this feature's folder (e.g., `.pair-plans/<short-plan-name>/001-phase-1.md`, `002-phase-2a.md`, `003-phase-2b.md`). Number sequentially; split a phase into `2a`/`2b` when it grows past the LOC budget. These are working documents — do NOT commit them. They exist so future sessions can pick up mid-phase. Present the plan to the user for approval. Do NOT invoke `writing-plans` — that auto-transitions to execution.
-
-**2. Build — calibrate rigor, then decide inline vs subagent.** First set the *track* (see `${SKILL_DIR}/../ruby-programming/references/calibrating-rigor.md`) — it sets the inner loop; the gates run every phase either way:
-- **Discovery** (design emerging; no validated reference): strict per-change Red→Green→Refactor→Simplify→Pre-flight.
-- **Transcription** (validated prototype, mechanical port, trivial change): batch the build, run the suite once or twice — the review still runs every phase; Transcription streamlines the build, not the review.
-
-When unsure, default to Discovery. State the track in the phase plan and pass it to the builder.
-
-Then decide inline vs subagent *before reading any build guidance*: if you offload, the builder reads it in its own context, so loading it here first wastes the savings. Default to inline; offer the subagent per phase, only when the user opts in, and favor it for mechanical phases over ones where the design is still being discovered at the keyboard.
-
-- **Subagent (token saving, with a tradeoff).** The user isn't in the loop *during* the build — they review the finished diff in step 3 — so dispatch the **ruby-builder** agent (see `${SKILL_DIR}/../ruby-programming/agents/ruby-builder.md`) with the approved phase plan and the WHAT/WHY context. It reads the implementer guidance itself, runs the quality loop, self-checks against the checklist until clean, and hands back a summary plus the diff. It does **not** commit, present, or run review gates — its prompt enforces that. **Do NOT read the implementer prompt yourself** — that guidance stays off the main thread too. **Tradeoff:** step 3's teaching ("name patterns as you apply them") gets reconstructed from the diff rather than narrated live, so the pairing feel softens.
-- **Inline.** Read `${SKILL_DIR}/../execute-plan/implementer-prompt.md` (Shameless Green, pre-flight sweep, simplify) and run the full quality loop yourself — Red, Green, Refactor, Simplify, Pre-flight — without pausing at intermediate steps. The user doesn't need to see the failing test or the shameless green separately. Phases should be small enough that the final code is reviewable.
-
-**Quality + compliance gates — after every phase, both tracks.** Reviewing the code against our best practices is not optional in either track; Transcription streamlines the build, not the review (see `${SKILL_DIR}/../ruby-programming/references/calibrating-rigor.md`). *How* to run them — always in parallel, since they're independent, don't wait for one before the other:
-- **ruby-verifier** (see `${SKILL_DIR}/../ruby-programming/agents/ruby-verifier.md` and `${SKILL_DIR}/../ruby-programming/references/quality-checklist.md`) — mechanical quality, fresh eyes.
-- **compliance-reviewer** — a `general-purpose` agent using the compliance-reviewer prompt (see `${SKILL_DIR}/agents/compliance-reviewer.md`). Give it the WHAT/WHY summary, the roadmap, and the code diff.
-
-When both return: if either has FAILs, fix every item — or, if the build ran in ruby-builder, re-dispatch the builder with the items rather than fixing on the main thread — then re-dispatch **both** gates in parallel again. A verifier fix can shift compliance scope and vice versa, so re-run both rather than reasoning about which to repeat. Loop until both come back clean.
-
-**3. Review together.** When both the verifier and compliance reviewer pass, present the final code to the user — what changed, why, and how it connects to the broader design. Teach as you go:
-- Name patterns as you apply them: "This is Shape 4 — parallel conditionals."
-- Use the forward question: "If a new variant appears, how many files change?"
-- When placing extension points, explain what they're for.
-- When refactoring, name the flocking rule or design improvement.
-- Be ruthless about simplicity — every line earns its place.
-
-The user reviews, asks questions, requests changes. Iterate until both sides are happy.
-
-**4. Commit.** Only after the user approves. Follow the "Writing About Code" section in the ruby-programming skill. User's personal writing style (if configured) takes precedence.
-
-<HARD-GATE>
-NEVER run `git commit` or `git add` without the user's explicit approval. No silent commits. Never mix refactoring and feature work in the same commit.
-</HARD-GATE>
-
-**5. Repeat — and prefer a fresh session.** Update the roadmap (mark phase complete, note what changed, adjust future phases) and capture any phase-completion notes into the phase plan. Then, before moving on, run the handoff check below and offer a fresh session.
-
-**Handoff check (do this before offering to clear context).** A fresh session is only safe if `.pair-plans/<short-plan-name>/` holds everything the next session needs. Verify, in order:
-1. The roadmap reflects the just-finished phase (status, what changed, impact on future phases).
-2. The next phase's plan exists, or there's enough in the roadmap to write it cold.
-3. **Nothing learned this session lives only in the transcript.** Scan since the docs were last written — decisions, surprises, constraints, anything the user said that isn't in the code. Write it into the roadmap or phase plan *now*, or it's lost on `/clear`.
-
-Only once the docs are complete, ask: **"Clear context and start the next phase fresh, or keep going in this session?"** Fresh is the default and the cheaper path; staying is fine for a small next phase or when the user wants continuity of discussion. The user decides — never clear on your own.
-
-### Session Continuity
-
-Each pairing feature lives in `.pair-plans/<short-plan-name>/` — `roadmap.md` plus the numbered phase plans. To resume (new session or after `/clear`), invoke `/pair` and point at that folder. Read the roadmap and the latest phase plan, identify the current phase, and pick up there. The handoff check guarantees the folder is complete, so a fresh session loses no ground — it just sheds the token weight of the prior phases.
-
-**Recap, don't recite.** Reading the docs is for *you*; what you say to the user is a separate, much shorter thing. The phase plan is the machine-state layer — the user (often its author) does not need it read back. Lead with the recap in ≤3 lines: where we are, what's next, the one decision to make. Plain language — don't echo the doc's internal shorthand (codes, element names, method signatures) unless the user uses it first. Give one recommendation, not a menu. Expand only when asked. Thoroughness of reading is not thoroughness of reporting.
-
-## When to Use This vs Other Skills
-
-- **pair** — sustained work across multiple PRs where you want to stay involved at every step
-- **brainstorm** — quick design exploration that hands off to writing-plans and execution
-- **execute-plan** — well-scoped implementation where continuous execution is fine
-
-If you're not sure: pair is the safe default. You can always speed up by saying "go ahead." You can't slow down execute-plan once it starts.
-
-## Anti-Patterns
-
-| Rationalization | Reality |
-|---|---|
-| "I'll commit and show them after" | No. The user reviews before any commit. Every time. |
-| "The plan is approved so I can skip the review" | Plan approval authorizes scope. The user still reviews the final code. |
-| "The verifier passed so it's ready to commit" | The verifier checks mechanical quality. The user reviews design intent and correctness. Both are required. |
-| "I'll invoke writing-plans to be more efficient" | Writing-plans auto-transitions to execution. That's the opposite of pair mode. |
-| "This phase is too small to need a plan" | Every phase gets a plan the user approves. Small plans are fast to review. |
-| "I'll reuse the existing client/library for convenience" | Check the WHY context. If that dependency is being deprecated, convenience now is pain later for every future consumer. |
-| "I'll lay out all the context and the decisions, then ask at the end" | One turn, one question. Stacking context for several decisions then surveying is the rambling the user can't work with. Loop one context block → one question — see Communication protocol. |
-| "I'll think out loud so they can follow my reasoning" | Work silently; the user sees a landed conclusion and one question, not your reasoning stream. |
-
-## What This Skill Does NOT Do
-
-- Does not replace brainstorm (use brainstorm for quick design explorations that hand off to execution)
-- Does not invoke writing-plans, subagent-driven-development, or executing-plans
-- Does not execute autonomously between user checkpoints
-- Does not commit without explicit user approval
+Use the current runtime's capabilities and relative bundled paths. Do not require Claude-only tool names, environment variables, or agent types.

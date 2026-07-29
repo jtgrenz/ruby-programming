@@ -1,6 +1,6 @@
 # Design Shape Triggers
 
-Read this during the **Design** step (Step 1) and the **Design Pass** in the **Refactor** step (Step 4) of the Quality Loop. Also read during code review before commenting on syntax.
+Read this when a design choice, pattern, or seam is in question — before writing new structure, during a refactor pass, or in review before commenting on syntax. List the `## Shape` headings first and read only the shapes whose triggers plausibly match the code in front of you.
 
 A **shape** is a structural signature in code that suggests a design pattern wants to emerge. Shapes are what you observe; patterns are what you apply. Not every shape demands a pattern — check the threshold gate before acting.
 

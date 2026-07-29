@@ -1,91 +1,81 @@
-# Ruby Implementer Prompt Addendum
+# Ruby Implementer Guidance
 
-Append this to the superpowers implementer subagent prompt when the task involves Ruby code. This is SELF-CONTAINED — the implementer does not need to read any other skill files.
+Use this only for an explicitly delegated implementation plan.
 
-```
-## Ruby-Specific Guidance
+## Keep the plan boundary
 
-### Implementation Approach: Shameless Green
-Write ONLY the code needed to make the current test pass:
-- Strings, not enums. Hashes, not T::Struct. Conditionals, not class hierarchies.
-- Hardcoded values are fine. Duplication is fine. Ugly is fine.
-- If you're writing code that no test demands, stop.
-- Include Sorbet sigs (typing is the baseline, not an improvement).
+Implement the approved outcome. Do not add adjacent cleanup, speculative extension points, or files that the plan does not require. If the plan would deepen a clear existing design problem, stop and surface the conflict instead of silently widening the work.
 
-The test passing is the gate. Clean code comes in the Refactor step, not the Green step.
+## Match the loop to the change
 
-**Shameless Green does NOT mean "follow a bad plan faithfully."** If the design analysis (below) reveals that the plan would make an existing design smell worse — adding more mode-dependent fields to a struct that already has them, growing an if/elsif chain that's already 3+ branches — STOP. Flag it as a concern and propose an alternative before implementing. Implementing a plan you know creates technical debt is not simplicity, it's avoidance.
+### Behavior change
 
-### Match the loop to design certainty
-The per-change Red→Green loop is for *discovering* a design. If your dispatch says the design is already validated — re-deriving a verified prototype, a mechanical port, or a trivial change — do NOT micro-loop. Write the target implementation and a comprehensive spec, run the suite once, and fix failures. A full spec run catches transcription errors at the first green bar with the same safety as N micro-cycles, at a fraction of the spec boots. Reserve the per-change Red→Green→Refactor→Simplify→Pre-flight loop for phases where the shape is genuinely open. When the dispatch doesn't say, ask or default to the per-change loop.
+1. Write one focused example that expresses the missing behavior.
+2. Run it and confirm the expected failure.
+3. Write the smallest coherent implementation that fits existing code and types.
+4. Run the focused example.
+5. Refactor only the code touched by that behavior.
 
-### Design Analysis
-Before writing code, check the EXISTING code you'll be modifying:
-- What are the axes of change? (dimensions that vary independently — each suggests a seam)
-- Does the existing code have mode-dependent fields? (fields meaningless in some configurations → Strategy or sum type)
-- Forward question: "If a new variant appears, how many files change?"
-- Would the plan make an existing smell WORSE? If yes, flag it before implementing.
-- Don't over-engineer: check that the pattern earns its keep before applying it
+Green means production-worthy code for the current contract. Do not deliberately use a string instead of an established enum, a hash instead of an established value object, or a hardcoded branch that will be replaced immediately. That ceremony adds work without producing information.
 
-**Preparatory refactoring check:** Does the existing code have the structure to receive this change cleanly? If adding the new behavior with shameless green would force it into a known smell (growing a bloated class, adding scattered related methods, duplicating conditionals on the same threshold), **refactor first in a separate commit**:
-1. **How well can you see the structure?** Clearly → step 2. Mostly but messy → tidy first (small committed improvements until the seam emerges). Lost → scratch refactor (throwaway branch to learn the structure, save learnings to the implementation plan or a working doc, discard branch).
-2. **Locate the seam** — name the seam type (object, link, or preprocessing) and its enabling point.
-3. Extract the class/method along the seam, verify all existing tests pass (zero behavior change), then start TDD against the clean structure.
+### Known design
 
-Skip when greenfield, the seam already exists, or the Refactor step can handle it after the fact.
+For a verified prototype, mechanical port, generated change, or established local pattern, write the target shape directly. Add or update the smallest useful coverage and run it once or twice. Do not re-discover a known answer through micro TDD.
 
-### Pre-flight Sweep
-Before submitting for review, do a mechanical pass over ALL code you wrote. Report the results explicitly:
-- [ ] Every T.must has an inline WHY comment
-- [ ] No T.untyped for known structures
-- [ ] No single-letter variables (except k/v/i)
-- [ ] No WHAT comments (comments describing what code does — well-named identifiers do that)
-- [ ] Each `it` block has one `expect`
-- [ ] Outgoing commands are mocked in tests
-- [ ] 2+ params use keyword args
-- [ ] Methods under 15 lines
-- [ ] Functional transforms, not imperative loops (map/select/reject, not loop-and-append)
+### Structural change
 
-### Simplify (mandatory after every code change)
-After every edit — not just at the end — re-read each new or changed method and loop until a full pass finds nothing:
+For a rename, move, extraction, fixture rewrite, or other behavior-preserving refactor:
 
-**Expression-level compression:**
-- Can any temp variable be inlined? (assigned-then-used-on-next-line = inline)
-- Does any intermediate variable just restate the right-hand side? (`result = calculate_result` → inline it)
-- Can any conditional become a guard clause + early return?
-- Can any method be replaced by a Ruby built-in? (`each_with_object` → `transform_values`, custom loop → `filter_map`)
-- Does any method wrap a single built-in call? (inline it — the wrapper adds indirection without depth)
-- Can any multi-line block become a one-liner without losing clarity?
-- Does any class with one public method exist that a lambda would handle? (downgrade unless it has meaningful state)
-- Can any method be deleted because its caller could do the work inline?
-- Is any method longer than its caller? (the abstraction may be at the wrong level)
+1. Name the observable behavior that must remain unchanged.
+2. Inspect whether relevant existing coverage protects that behavior.
+3. If coverage is adequate, make the structural move directly and rerun the narrowest relevant check.
+4. If coverage is inadequate, first add the smallest characterization example of current behavior with hard-coded expectations, not production calculations. Confirm it passes before the refactor, make the move, then rerun it.
 
-**Name-at-call-site audit:**
-- Read each method name **where it's called**, not where it's defined.
-- Does the name accurately describe the method's **full behavior**, including all branches and early returns?
-- If the method does more than the name promises, either rename it to cover the full scope, or inline it back into the caller where the individual checks are explicit.
+Do not manufacture a failing test for behavior that already exists. If writing the test requires choosing new behavior rather than recording current behavior, this is not purely structural; reclassify it as a behavior change and stop if that changes the approved scope.
 
-**Extraction justification:**
-- Does each extracted method absorb complexity (deep) or just relocate it (shallow)?
-- Apply the deletion test: if you deleted this method and inlined its body, would the caller get harder to read? If not, the extraction doesn't earn its keep.
+## Design check
 
-The goal is the SHORTEST, CLEAREST code that passes the tests. Not clever — clear. Every line should earn its place.
+Before editing, inspect the code receiving the change:
 
-### Running specs
-Run focused, not whole files. During the Red→Green loop, run only the example or file under work (`bundle exec rspec path/to/thing_spec.rb:42`, or `-e "description"`). The full file or suite belongs at the verify gate, not inside the loop — a Rails boot plus a large spec run is usually the biggest wall-clock cost in the cycle, and you pay it on every iteration. On transcription work (design already known), batch your assertions so the suite boots once or twice for the whole phase rather than once per example — the per-example boots are the single largest avoidable cost.
+- What varies independently?
+- Would the plan add another mode-dependent field or parallel conditional?
+- If a new variant appeared, how many files would change?
+- Does a local precedent already solve this?
 
-When you do run a full spec file and it turns out to be large or slow (roughly 50+ examples, or a run that drags for tens of seconds), record a memory: the spec path, that it's large, and that future work should run it focused. A later session then reads that and stays focused from the start instead of re-discovering the cost. If you are a dispatched subagent without a memory store, surface the large spec in your hand-back instead so the main agent records it.
+Apply a pattern only when it removes current complexity. Do not create a framework for hypothetical variants.
 
-### Sorbet
-- Default to `typed: strict` for new files
-- T.sig on every public method
-- T::Struct for data objects, classes with extend T::Sig for behavior
-- T.nilable for nullable values — handle nil explicitly, don't return bare nil
-- T.unsafe/T.must get an inline comment explaining WHY
+If existing structure cannot receive the behavior without making a known smell worse, separate the preparatory refactor from the feature. Stop for a user decision if that refactor is outside the approved plan.
 
-### Naming
-- Every name reveals intent without needing a comment
-- No noise words (data, info, manager, processor, handler)
-- Variables spelled out — no abbreviations except k/v/i
-- Method names at the right abstraction level
-```
+## Ruby quality
+
+- Match the file's Sorbet level; use explicit types for known internal shapes.
+- Use keyword arguments when argument order is not obvious.
+- Keep public methods focused and names truthful at their call sites.
+- Prefer immutable transformations and isolate mutation at boundaries.
+- Avoid comments that merely restate the code.
+- Add tests to existing spec files when the behavior already belongs there.
+- Test incoming messages and outgoing commands; do not test private methods or outgoing queries.
+
+## Verification
+
+During implementation, run focused examples by line or description. Do not repeatedly boot a full Rails suite.
+
+At the completed plan boundary:
+
+1. Run the relevant spec files.
+2. Run the project's required linter and type checks on changed code.
+3. Run broader suites only when the project requires them or the change has cross-cutting risk.
+4. Inspect the final diff for unplanned files and accidental cleanup.
+
+Report failed checks immediately. Do not repeat successful command output in the user-facing summary.
+
+## Hand-back
+
+Return:
+
+- what changed;
+- any material deviation from the plan;
+- verification failures or final status;
+- the one decision still needed, if any.
+
+Do not commit unless the user explicitly authorized it.

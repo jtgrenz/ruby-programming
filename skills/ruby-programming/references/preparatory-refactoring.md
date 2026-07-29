@@ -1,6 +1,6 @@
 # Preparatory Refactoring
 
-Read this during the **Design** step (Step 1) of the Quality Loop when modifying existing code. This doc answers one question: **should I refactor the existing code before starting TDD?**
+Read this during autonomous delivery when existing structure may not receive a behavior cleanly. This doc answers one question: **should I refactor before adding the behavior?**
 
 The principle: "Make the change easy, then make the easy change." (Kent Beck). When the existing code doesn't have the structure to receive new behavior cleanly, reshape it first — separate commit, zero behavior change, all tests green.
 
@@ -8,9 +8,9 @@ The principle: "Make the change easy, then make the easy change." (Kent Beck). W
 
 ## The Decision
 
-Ask: "If I write the simplest code that passes my new test (shameless green), will it make the existing design worse?"
+Ask: "Will the smallest coherent implementation make the existing design worse?"
 
-- **No** → Start TDD normally (Step 2). The code has room for the new behavior.
+- **No** → Add the behavior in the existing structure.
 - **Yes** → Prep-refactor first. But how depends on whether you can see the structure.
 
 The forward question confirms: "If a second similar change arrives next quarter, how many files change?" If the answer is "the same bloated file grows again," the structure is wrong.
@@ -46,7 +46,7 @@ If you thought you could see the structure but can't actually name a seam, go ba
 
 ### 3. Pick the technique and execute
 
-Match the signal you're seeing to a technique (see Signals and Techniques Reference below). Then execute the refactoring: separate commit, zero behavior change, all tests green. When done, start the TDD cycle (Step 2 of the Quality Loop) against the clean structure.
+Match the signal you're seeing to a technique (see Signals and Techniques Reference below). Then execute the refactoring: separate commit, zero behavior change, relevant tests green. When done, add the behavior against the clean structure.
 
 ---
 
@@ -85,7 +85,15 @@ When the code is too tangled to see the structure at all — you can't identify 
 2. Refactor aggressively — rename, extract, inline, delete. No tests, no commits, no discipline.
 3. When the structure becomes clear — you can name the clusters, see the seams, identify where you'd cut — stop.
 4. Save what you learned to a working document (`.pair-plans/scratch-notes.md` during pair mode, or the implementation plan if one exists). Record: which methods cluster together, what the responsibilities are, where the seams are, and what seam type each one is. This document must survive context clears — another agent or a future session needs it to pick up the real refactoring.
-5. Discard the branch entirely (`git checkout - && git branch -D scratch-refactoring`)
+5. Discard the scratch work. Deleting the branch discards nothing on its own: the edits were never committed, so they follow you back to the original branch, and `git branch -D` then deletes a branch that has no commits of its own. Both commands succeed, which is what makes this quiet. Run:
+
+   ```
+   git checkout --force -            # back to the original branch, dropping the scratch edits
+   git branch -D scratch-refactoring
+   git status                        # anything untracked here, the scratch pass created
+   ```
+
+   `--force` leaves untracked files alone, so the notes from step 4 survive. Delete any other file the pass created, then confirm `git status` shows nothing but those notes before continuing.
 6. Return to step 2 of the Prep-Refactor Path (Locate the seam) — now you can see the structure.
 
 Scratch refactoring is explicitly disposable. Its only outputs are understanding and the working document. If you find yourself wanting to keep the scratch work, you skipped the discipline — start over properly.
@@ -117,7 +125,7 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 
 ### Signal 3: New behavior would violate "never mix refactoring and feature work"
 
-**What you see:** You can picture the clean end state (calculator class, strategy pattern), but getting there from shameless green means your feature commit also contains a major structural change. The diff is unreadable, the PR is unreviewable.
+**What you see:** You can picture the clean end state, but implementing the feature in place would mix a major structural change into the feature diff.
 
 **Technique:** Split into two commits/PRs. First commit: pure refactoring, no new behavior. Second commit: new feature against the clean structure. The first commit is easy to review because the tests don't change. The second commit is easy to review because the structure is already right.
 

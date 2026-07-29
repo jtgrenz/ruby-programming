@@ -1,0 +1,22 @@
+{
+  "skill_name": "ruby-review",
+  "notes": "Design-shape recognition and false-positive resistance are eval'd in ../../ruby-programming/evals/evals.json (ids 1-3, 11, 13-16), which reach this skill through the ruby-programming Review section. The cases here cover only what is unique to this skill: resolving the review target (id 1) and holding the read-only boundary while combining two finding sources (id 2). Id 1 exists because URL misdetection is silent — reviewing local changes when a PR URL was given produces a confident review of the wrong diff, and the skill calls that out as critical.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "pr-url-reviews-remote-diff-not-local-branch",
+      "prompt": "The working tree has uncommitted Ruby changes on a feature branch, unrelated to any PR. The user says: \"Review this: https://github.com/Gusto/zenpayroll/pull/1234\"\n\nWhat do you do first? Name the exact commands you run to obtain the diff.",
+      "expected_behavior": "MUST treat this as a remote PR review because the argument contains github.com and /pull/. Extract owner (Gusto), repo (zenpayroll), and number (1234), then run `gh pr diff 1234 --repo Gusto/zenpayroll`. MUST NOT run `git diff`, `git diff main...HEAD`, or otherwise review the local uncommitted changes, and MUST NOT silently fall back to local changes if the gh call fails — report the failure instead. Reviewing the local branch here would produce a confident review of the wrong diff.",
+      "eval_result": "Claude Opus 5 fresh-context pass: classified the PR URL as a remote review, named gh pr diff with the owner/repo flag, and refused to fall back to a local diff when it fails, diagnosing by error class instead. This run also surfaced the Step 3 verifier-path gap that the skill now covers.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "review-stays-read-only-and-separates-finding-sources",
+      "prompt": "You have completed a design pass and a quality-checklist pass on a Ruby diff. The design pass found a mode-dependent field crossing its threshold gate; the checklist pass found two abbreviated block variables and one method testing a private method directly. The user's only instruction was \"review my changes.\"\n\nCompose the review you present.",
+      "expected_behavior": "MUST stay read-only: present findings without editing files, and without offering to implement the fixes unless asked. MUST separate design concerns from mechanical quality findings, lead with the actionable ones, and omit passing checklist items and process narration. Any design term used MUST appear with its full name and a brief parenthetical explanation on first use — no bare CoM, SRP, or OCP. Each finding stays to one compact paragraph. MUST NOT recommend a pattern without stating which threshold gate is crossed.",
+      "eval_result": "Claude Opus 5 fresh-context pass: led with the design concern and named the threshold, separated design from mechanical findings, used full names with parentheticals for Connascence of Meaning, Interface Segregation and Open/Closed, wrote no code, and pointed at the host general review for a bug scan.",
+      "files": []
+    }
+  ]
+}

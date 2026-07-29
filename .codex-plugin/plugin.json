@@ -1,0 +1,28 @@
+{
+  "name": "ruby-programming",
+  "version": "0.12.0",
+  "description": "Ruby design guidance and proportional collaborative development workflows.",
+  "author": {
+    "name": "Jon Grenning",
+    "url": "https://github.com/jtgrenz"
+  },
+  "homepage": "https://github.com/jtgrenz/ruby-programming",
+  "repository": "https://github.com/jtgrenz/ruby-programming",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Ruby Programming",
+    "shortDescription": "Ruby design and pairing",
+    "longDescription": "Shape Ruby changes collaboratively, review design, or execute approved plans with rigor matched to the task.",
+    "developerName": "Jon Grenning",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Make one small Ruby change and show me the diff.",
+      "Review this Ruby diff for design problems.",
+      "Execute this approved Ruby implementation plan."
+    ]
+  }
+}

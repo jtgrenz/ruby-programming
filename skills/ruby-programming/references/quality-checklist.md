@@ -1,6 +1,6 @@
 # Ruby Quality Checklist
 
-Read this during the **Verify** step (Step 8) of the Quality Loop and when reviewing Ruby code in PRs.
+Read this for a final audit at a completion boundary, and when reviewing Ruby code in PRs.
 
 ## Naming
 
