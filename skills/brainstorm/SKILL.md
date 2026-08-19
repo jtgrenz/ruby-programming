@@ -63,7 +63,9 @@ Use the design vocabulary precisely — "axes of change", "seam", "mode", "varia
 
 **If not available**, present the recommended approach, get user approval, and write a spec doc to `docs/specs/` or the project's preferred location.
 
-Any implementation plan produced after brainstorming receives one review using `../pair/agents/plan-reviewer.md` before approval or execution. `execute-plan` enforces this boundary if the planning workflow cannot.
+Any implementation plan produced after brainstorming follows the layered readability contract in `../pair/roadmap-template.md`: a highlighted document TL;DR, an at-a-glance map of every named section and work unit below it, and a highlighted local TL;DR for every named section, phase, task, and PR. Keep each prose section to at most two short paragraphs; move agent-resume detail into bullets, tables, or a collapsed section whose descriptive summary acts as its TL;DR.
+
+Show the human-readable layer for direction approval first. Then run one review using `../pair/agents/plan-reviewer.md` before final approval or execution; rerun only after a material change to scope, ordering, or migration safety. `execute-plan` enforces this boundary if the planning workflow cannot.
 
 ## What This Skill Does NOT Do
 

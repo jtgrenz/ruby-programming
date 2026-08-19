@@ -36,8 +36,8 @@
     {
       "id": 5,
       "name": "explicit-delivery-escalates",
-      "prompt": "After approving the shaped diff, the user says: \"This direction is right. Take the approved plan to completion and make it commit-ready.\"",
-      "expected_behavior": "Switch explicitly to delivery, use execute-plan, complete the approved scope, and run proportional specs and lint. On the stable diff, run ruby-verifier and one plan-compliance review. Do not commit without explicit approval.",
+      "prompt": "After approving the shaped direction for a substantial multi-file Ruby behavior change, the user says: \"This direction is right. Take the approved plan to completion and make it commit-ready.\"",
+      "expected_behavior": "Switch explicitly to delivery, use execute-plan, complete the approved scope, and run proportional specs and lint. Because the stable diff is substantial and plan-backed, run ruby-verifier and one plan-compliance review. Do not commit without explicit approval.",
       "baseline_behavior": "The old pair skill embedded delivery mechanics directly in every phase, so there was no meaningful shaping-to-delivery boundary.",
       "eval_result": "Claude Opus 5 fresh-context pass: switched to execute-plan, re-checked the plan-reviewer gate, ran proportional specs, lint and types, then ruby-verifier and compliance-reviewer once in parallel, and asked before staging."
     },
@@ -75,27 +75,51 @@
     },
     {
       "id": 10,
-      "name": "every-written-plan-gets-one-review",
+      "name": "plan-is-human-readable-before-review-gate",
       "prompt": "The user explicitly asks: \"Write a three-phase .pair-plans roadmap for this production migration so I can approve the direction.\"",
-      "expected_behavior": "Draft the requested roadmap, run plan-reviewer before presenting it, resolve findings and rerun until it reports no problems, then wait for user approval. After a clean review, only material plan revisions require another review. Review migration safety including validation, rollout, rollback, and safe cutover. Do not start implementation or run ruby-verifier/compliance-reviewer at the planning boundary.",
-      "baseline_behavior": "The reduced pair skill drafted and presented the roadmap with only its own scope check; it invoked no independent plan reviewer and left the production-migration plan underspecified.",
-      "eval_result": "Codex fresh-context pass with the original prompt restored: reviewed once before presentation, preserved the six-check problems-only output contract, reran findings until clean, and retained the full migration-safety checklist. The roadmap that run produced is kept at `evals/sample-roadmap-sftp-migration.md` as the reference example of a passing artifact — compare new runs against it."
+      "expected_behavior": "Draft the roadmap with a highlighted document TL;DR, a compact At a Glance scan path covering every named section and work unit below it, and a highlighted local TL;DR for every named section, phase, task, and PR. A descriptive summary acts as the TL;DR for collapsed resume detail. Keep prose sections to at most two short paragraphs and preserve migration safety including validation, rollout, rollback, dual-run ownership, and safe cutover. Show the human-readable layer and wait for direction approval before running plan-reviewer. After approval, run the reviewer once, fix blocking findings, surface advisory findings without looping for a clean report, and re-present only the changed summary and affected sections. Do not start implementation or run ruby-verifier/compliance-reviewer at the planning boundary.",
+      "baseline_behavior": "Version 0.12 ran plan-reviewer and repeated fixes before the user saw the roadmap, while the artifact had no required TL;DR or at-a-glance scan path.",
+      "eval_result": "Covered by eval 15's Codex iteration-3 fresh-context run: the stricter roadmap included every named section/work unit in At a Glance, gave each a local TL;DR, kept resume detail collapsed, and enforced direction approval, one plan review, then final user approval before implementation."
     },
     {
       "id": 11,
-      "name": "stable-pairing-diff-gets-precommit-ruby-verification",
-      "prompt": "A planless pairing change has an approved direction and a stable Ruby diff. The user says: \"Looks right, commit it.\"",
-      "expected_behavior": "Run relevant tests and lint, then one ruby-verifier pass on the current diff before committing. Do not run plan-reviewer or compliance-reviewer because no written plan governs the change. Do not repeat the verifier if the diff remains materially unchanged.",
-      "baseline_behavior": "The reduced pair skill required tests, lint, and a scope check but no named reviewer; its vague final-review wording could be satisfied by self-review.",
-      "eval_result": "Codex fresh-context pass: required tests, lint, and one ruby-verifier pass; skipped plan-only reviewers and reused the pass while the diff remained stable."
+      "name": "small-finalized-diff-skips-ruby-verifier",
+      "prompt": "A planless pairing change only moved two existing fixture values and updated their spec references. Existing focused coverage protects the behavior. The user says: \"Looks right, commit it.\"",
+      "expected_behavior": "Treat the commit request as an explicit completion boundary. Run the relevant focused spec and required lint on the changed scope, inspect the final diff, and commit if those checks pass. Do not run ruby-verifier, plan-reviewer, or compliance-reviewer: this is a small mechanical diff with no new public interface, design shape, cross-component callers, or written plan.",
+      "baseline_behavior": "Version 0.12 required a Ruby verifier pass before every pairing commit, including tiny mechanical diffs.",
+      "eval_result": "Codex fresh-context pass (action-selection only; no repo commands executed): treated the commit request as the completion boundary, selected the existing focused spec and changed-scope lint, required final diff inspection and commit on success, and skipped ruby-verifier, plan-reviewer, and compliance-reviewer."
     },
     {
       "id": 12,
       "name": "plan-backed-stable-diff-gets-two-final-reviews-once",
-      "prompt": "An approved and already-reviewed implementation plan has been completed in a pairing session. The Ruby diff is stable and ready for commit.",
-      "expected_behavior": "Run ruby-verifier and compliance-reviewer once, preferably in parallel. Do not rerun plan-reviewer because the approved plan has not materially changed. Keep both passes valid until the code or plan changes materially; do not restart every gate after minor edits.",
+      "prompt": "An approved and already-reviewed implementation plan has produced a substantial Ruby behavior change spanning a new public interface and callers in three components. The diff is stable and ready for commit.",
+      "expected_behavior": "Run ruby-verifier and compliance-reviewer once, preferably in parallel, because the diff is both substantial and plan-backed. Do not rerun plan-reviewer because the approved plan has not materially changed. Keep both passes valid until the code or plan changes materially; do not restart every gate after minor edits.",
       "baseline_behavior": "The old workflow ran quality and compliance reviewers after every phase and restarted both after each fix; the reduced workflow removed both named gates.",
       "eval_result": "Codex fresh-context pass: ran final Ruby and compliance review once in parallel, reused valid passes, and reran only invalidated review scopes."
+    },
+    {
+      "id": 13,
+      "name": "direction-approval-does-not-finalize",
+      "prompt": "An established pairing session has a bounded, stable two-file extraction diff that the agent has already inspected. The user says: \"The direction is right. Show me the current code so I can decide whether we're done.\" Focused coverage was green before the edit, but no checks have run since. Compose the exact action sequence and next user-facing response.",
+      "expected_behavior": "Treat direction approval as a request to review the current proposal, not as finalization. Show the already-inspected diff immediately and state that final verification remains deferred. Do not run tests, lint, types, ruby-verifier, compliance-reviewer, or a general TDD/completion workflow, and do not call the work complete or commit-ready.",
+      "baseline_behavior": "Version 0.12 said both that direction approval authorizes a bounded move and that an approved stable diff opens tests, lint, and ruby-verifier, so the same prompt could trigger the completion gate before the next human review.",
+      "eval_result": "Controlled old-vs-new fresh-context comparison: version 0.12 passed 1/4 assertions because it opened tests, lint, and ruby-verifier before showing the diff; the revised skill passed 4/4 by showing the diff immediately, reporting verification as deferred, and staying in shaping."
+    },
+    {
+      "id": 14,
+      "name": "requested-validation-stays-focused",
+      "prompt": "The user has approved a shaped diff and says: \"Run only the focused spec at spec/invoice_spec.rb:42 and RuboCop on the changed Ruby file, then show me the result.\"",
+      "expected_behavior": "Run exactly the named focused spec and changed-file RuboCop, then report the results and remain in shaping. Do not run a broader suite, type checker, ruby-verifier, compliance-reviewer, execute-plan, or commit preparation.",
+      "baseline_behavior": "Version 0.12 had no named validation state, so approval plus a stable diff could escalate this request into its entire delivery gate.",
+      "eval_result": "Codex fresh-context pass (action-selection only; no repo commands executed): selected exactly the named spec example and changed-file RuboCop, required both results to be reported, stayed in shaping, and skipped broader checks, reviewers, execute-plan, and commit preparation."
+    },
+    {
+      "id": 15,
+      "name": "roadmap-has-a-human-scan-path",
+      "prompt": "The user asks: \"Write a three-phase .pair-plans roadmap for replacing a legacy HTTPS filing sender with SFTP. Phase 1 adds transport, Phase 2 dual-runs one filing type behind a flag while the legacy system still owns acknowledgements, and Phase 3 transfers acknowledgement ownership and retires the legacy path after three successful cycles. I need to skim it with my manager, then resume implementation from it later.\"",
+      "expected_behavior": "Create a roadmap with a clearly highlighted document TL;DR followed by a compact At a Glance table covering every named section, phase, PR, task, and collapsed resume section below it. Give every named section, phase, PR, and task a highlighted local TL;DR; a descriptive summary serves as the TL;DR for collapsed content. Keep prose to at most two short paragraphs per section; use bullets and tables for safety detail, placing resume-only paths, commands, assumptions, or handoff state in <details> blocks when useful. Preserve concrete migration safety: validation, rollout, rollback, dual-run ownership, and an explicit safe-cutover criterion. Show the human-readable layer before plan review; after direction approval, run plan-reviewer and resolve blocking scan-path and migration-safety findings before final approval.",
+      "baseline_behavior": "Earlier roadmaps contained sound implementation and safety detail but made readers discover the delivery sequence, rollout gates, and ownership boundaries by reading every section.",
+      "eval_result": "Codex iteration-3 fresh-context pass: 6/6 assertions after iteration 2's 5/6 exposed missing Phases and resume-detail rows. Automated checks also confirmed every heading has a local TL;DR and no section exceeds two prose paragraphs."
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 Read this during autonomous delivery when existing structure may not receive a behavior cleanly. This doc answers one question: **should I refactor before adding the behavior?**
 
-The principle: "Make the change easy, then make the easy change." (Kent Beck). When the existing code doesn't have the structure to receive new behavior cleanly, reshape it first — separate commit, zero behavior change, all tests green.
+The principle: "Make the change easy, then make the easy change." (Kent Beck). When the existing code doesn't have the structure to receive new behavior cleanly, reshape it first as a separate zero-behavior-change diff. Verify the relevant behavior at a coherent checkpoint; commit only when the user has authorized it.
 
 ---
 
@@ -26,7 +26,7 @@ Once you've decided the code needs reshaping, follow this sequence:
 Can you name the clusters of related methods, identify which responsibilities are tangled, and point to where you'd cut?
 
 - **Clearly** → Go to step 2 (Locate the seam).
-- **Mostly — the code is messy but the shape is emerging** → Tidy first (see below). Small, safe, committed improvements until the seam becomes visible. Then go to step 2.
+- **Mostly — the code is messy but the shape is emerging** → Tidy first (see below). Small, safe improvements in one coherent diff until the seam becomes visible. Then go to step 2.
 - **Not at all — I'm lost** → Scratch refactor (see below). Throwaway exploration to learn the structure. Then come back to step 2.
 
 ### 2. Locate the seam
@@ -46,13 +46,13 @@ If you thought you could see the structure but can't actually name a seam, go ba
 
 ### 3. Pick the technique and execute
 
-Match the signal you're seeing to a technique (see Signals and Techniques Reference below). Then execute the refactoring: separate commit, zero behavior change, relevant tests green. When done, add the behavior against the clean structure.
+Match the signal you're seeing to a technique (see Signals and Techniques Reference below). Then execute the refactoring as a distinct zero-behavior-change step. Run the narrowest relevant checks at its coherent completion boundary, not after every mechanical move. When done, add the behavior against the clean structure; keep it as a separate commit only when commit authorization exists.
 
 ---
 
 ## Tidy First
 
-When the structure is mostly visible but messy — you can roughly see the clusters but the code is cluttered enough that you can't confidently name a seam — **make small, safe, committed improvements until the shape emerges.** Rename a confusing variable. Extract a helper method. Reorder methods so related ones are adjacent. Each tidy is a real commit (separate from the feature work, zero behavior change).
+When the structure is mostly visible but messy — you can roughly see the clusters but the code is cluttered enough that you can't confidently name a seam — **make a small, safe group of improvements until the shape emerges.** Rename a confusing variable. Extract a helper method. Reorder methods so related ones are adjacent. Keep each coherent tidy separate from the feature behavior; do not create commits without explicit authorization.
 
 Tidying is lighter-weight than scratch refactoring. The code you write is keep-able. The seam you need often reveals itself after a few small moves.
 
@@ -62,9 +62,9 @@ Tidying is lighter-weight than scratch refactoring. The code you write is keep-a
 - The code has decent test coverage, so small moves are safe
 
 **How:**
-1. Make one small structural improvement — rename, extract, reorder. Run tests. Commit it.
+1. Make one small coherent structural improvement — rename, extract, or reorder — and inspect its diff.
 2. Re-read. Can you name the seam now? If yes, go to step 2 of the Prep-Refactor Path.
-3. If not, make another small improvement. Run tests. Commit. Repeat until the seam is visible.
+3. If not, make another small improvement. Run the narrowest relevant check after a coherent batch, then repeat only while the approved scope still benefits.
 
 If after several tidying passes you're still lost, the code is more tangled than it looked — escalate to scratch refactoring.
 
@@ -113,9 +113,9 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 **Steps:**
 1. Identify the cluster of related methods and their shared dependencies
 2. Create the new class with the same public interface as the private methods
-3. Move methods one at a time, running tests after each move
+3. Move methods in the smallest coherent slice, then run the narrowest relevant checks once for that slice
 4. Replace private method calls in the host with delegation to the new object
-5. All existing tests pass — zero behavior change
+5. Relevant behavior checks pass — zero behavior change
 
 ### Signal 2: Conditional on the same discriminator in multiple methods
 
@@ -127,7 +127,7 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 
 **What you see:** You can picture the clean end state, but implementing the feature in place would mix a major structural change into the feature diff.
 
-**Technique:** Split into two commits/PRs. First commit: pure refactoring, no new behavior. Second commit: new feature against the clean structure. The first commit is easy to review because the tests don't change. The second commit is easy to review because the structure is already right.
+**Technique:** Split into two reviewable diffs or PRs. First: pure refactoring, no new behavior. Second: new feature against the clean structure. Use separate commits only when authorized. The first diff is easy to review because the behavior does not change; the second is easy to review because the structure is already right.
 
 ### Signal 4: Test setup is painful because of coupling
 
@@ -145,7 +145,7 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 
 **What you see:** The file is 300+ lines, has 10+ private methods, or mixes concerns from multiple domains (tax calculation + period handling + employee counting + payment tracking all in one class).
 
-**Technique:** Identify the clusters (often by method prefix or shared parameters), then Extract Class for each cluster. The host becomes an orchestrator that delegates to focused objects. Each extraction is a separate commit.
+**Technique:** Identify the clusters (often by method prefix or shared parameters), then Extract Class for each cluster. The host becomes an orchestrator that delegates to focused objects. Keep each extraction as a separate reviewable diff; commit only when authorized.
 
 ---
 
@@ -158,7 +158,7 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 | **Sprout Method** | Like Sprout Class but smaller — one new method alongside existing code | When a full class is overkill |
 | **Wrap Method** | Need to add behavior before/after an existing method without modifying it | Rename the original, create a new method with the old name that calls both |
 | **Characterization Tests** | Existing code lacks test coverage, you need a safety net before refactoring | Assert what the code *does*, not what it *should* do |
-| **Tidy First** | Structure is mostly visible but noisy — small moves will reveal the seam | Keep-able commits — each tidy is a real commit with zero behavior change |
+| **Tidy First** | Structure is mostly visible but noisy — small moves will reveal the seam | Keep a coherent zero-behavior-change diff; commit only with authorization |
 | **Scratch Refactoring** | Code is too tangled to identify clusters or seams by reading alone | Throwaway work — save learnings to working doc, revert, then do it for real |
 | **Replace Conditional with Polymorphism** | Same condition checked in 3+ methods | Only when the variants are stable — premature polymorphism is worse than conditionals |
 | **Introduce Parameter Object** | Same 3+ parameters passed together through multiple methods | Often the first step before Extract Class — the parameter object becomes the new class's constructor |
@@ -169,5 +169,5 @@ Scratch refactoring is explicitly disposable. Its only outputs are understanding
 
 - **Not gold-plating.** You refactor exactly enough to create the seam. No more.
 - **Not speculative.** You have a specific feature to add and a specific structural problem blocking it.
-- **Not optional cleanup.** If the existing code can receive the new behavior cleanly, skip this entirely and go straight to TDD.
-- **Not a license to rewrite.** Small, safe, incremental moves. Tests green after every change. If you can't describe the refactoring in one sentence, it's too big — break it down.
+- **Not optional cleanup.** If the existing code can receive the new behavior cleanly, skip this entirely and use the proportional behavior loop for the delegated change.
+- **Not a license to rewrite.** Small, safe, incremental moves, grouped into coherent review and verification checkpoints. If you can't describe the refactoring in one sentence, it's too big — break it down.

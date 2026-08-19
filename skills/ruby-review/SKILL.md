@@ -47,7 +47,7 @@ Then review the diff with design eyes:
 
 After completing the design pass, run the shared verifier for mechanical quality checks: `../ruby-programming/agents/ruby-verifier.md`. Dispatch it as a fresh subagent when the runtime supports one; otherwise apply that prompt directly. Do not restate its rules or output format here — a second copy drifts from the original.
 
-Hand it the changed file paths. For a remote PR, paste the diff text instead: the working tree may hold unrelated changes, so local paths would resolve to the wrong content. Checking the PR out first (`gh pr checkout <number> --repo <owner>/<repo>`, which needs a clean tree) is the alternative.
+Hand it the exact diff plus the changed file paths. For an explicit full-file review, label the paths as full-file audit targets instead. For a remote PR, paste the diff text: the working tree may hold unrelated changes, so local paths would resolve to the wrong content. Checking the PR out first (`gh pr checkout <number> --repo <owner>/<repo>`, which needs a clean tree) is the alternative.
 
 ### Step 4: Present Findings
 

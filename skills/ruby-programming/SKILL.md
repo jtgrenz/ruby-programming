@@ -12,11 +12,21 @@ Choose the work mode before applying Ruby guidance.
 
 Use when the user wants to work together, requests a bounded edit, wants to inspect a direction, or has not delegated the full outcome.
 
-Make the change, show its diff, and stop. Before claiming preservation, inspect relevant coverage. If it is inadequate, surface the gap rather than silently adding tests. Avoid neighboring cleanup. Run a focused check only when the diff cannot establish the move; do not run broad checks, dispatch reviewers, or prepare for commit. Follow `pair` when active.
+Make the change, show its diff, and stop. The handoff is a proposal, not a completion claim, so a general TDD or completion-verification workflow does not control this boundary. Before claiming preservation, inspect relevant coverage; if it is inadequate, surface the gap rather than silently adding tests. Avoid neighboring cleanup. Run one focused check only when requested or when its result could materially change the user's current decision. Do not run broad checks, dispatch reviewers, or prepare for commit. Follow `pair` when active.
+
+## Requested validation
+
+When the user names a check or asks to validate the current direction, run the narrowest check that answers that request and return its result. Do not infer permission to run the full delivery gate or switch to autonomous execution.
+
+## Completion boundary
+
+Use when the user explicitly asks to finalize, commit, or make an already-shaped diff commit-ready. Run relevant tests and the project's required lint and type checks on the changed scope, then inspect the complete diff. Run `ruby-verifier` only for substantial or cross-cutting Ruby changes; plan-backed work also gets one compliance review.
+
+If finalization finds changed behavior that current coverage does not protect, add or update the smallest useful behavior coverage now and prove it. Existing relevant coverage only needs to be rerun. Do not delete and recreate approved code solely to claim a test-first sequence that did not happen.
 
 ## Autonomous delivery
 
-Use only when the user explicitly asks to finish, fix completely, execute a plan, or make the work commit-ready. Follow `execute-plan` when a plan exists.
+Use only when the user delegates remaining implementation end to end: implement the agreed scope, fix it completely, execute a plan, or take an unimplemented scope through commit-ready verification. A request to finish an already-shaped diff belongs to the completion boundary. Follow `execute-plan` when a plan exists.
 
 Classify other work before editing:
 
@@ -24,7 +34,7 @@ Classify other work before editing:
 - Structural or mechanical change: establish relevant coverage, then edit directly.
 - Validated design or port: write the known target shape directly.
 
-Fit established types and conventions on the first green pass. Do not deliberately introduce a naive representation merely to replace it immediately. Refactor only the requested scope. Run focused checks while working, then project-required tests, lint, and types once at the completion boundary. Run one Ruby verifier pass on the stable diff; plan-backed work also gets one compliance review.
+Fit established types and conventions on the first green pass. Do not deliberately introduce a naive representation merely to replace it immediately. Refactor only the requested scope. Run focused checks while working, then relevant project-required tests, lint, and types once at the completion boundary. Run broader suites only when project policy or cross-cutting risk requires them. Run one Ruby verifier pass for a substantial or cross-cutting stable diff; plan-backed work also gets one compliance review.
 
 ## Review
 
@@ -57,7 +67,7 @@ Add examples where the behavior belongs. Hard-code expectations instead of calli
 - Existing structure may block a feature: `references/preparatory-refactoring.md`
 - Advanced Sorbet decision: `references/sorbet-patterns.md`
 - Final audit: `references/quality-checklist.md`
-- Shaping versus delivery: `references/calibrating-rigor.md`
+- Interaction boundaries and proportional rigor: `references/calibrating-rigor.md`
 
 Resolve paths relative to this skill; avoid runtime-specific variables.
 

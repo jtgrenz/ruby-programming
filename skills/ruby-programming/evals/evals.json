@@ -159,6 +159,14 @@
       "expected_behavior": "Select interactive shaping. MUST NOT select `execute-plan`: no plan or explicit end-to-end delegation exists, 'fix it' on one method is a bounded edit rather than delegated completion, and `references/calibrating-rigor.md` says to shape first when ambiguous. Make the smallest correct change, check whether existing coverage protects the rounding contract and surface the gap if it does not, show the diff, and stop. Do not run broad suites, dispatch ruby-verifier or compliance-reviewer, or prepare a commit. This case guards the removal of `disable-model-invocation` from execute-plan: now that the skill is model-invocable, its description's negative trigger and its entry gate are the only things keeping an ambiguous fix request out of autonomous delivery.",
       "eval_result": "Claude Opus 5 fresh-context pass, run twice with the second sandboxed against searching: selected shaping via pair, explicitly rejected execute-plan by its entry gate and calibrating-rigor shape-first-when-ambiguous rule, invoked no reviewer, and asked before touching specs. Confirms the description negative trigger plus the entry gate hold the boundary the frontmatter gate used to.",
       "files": []
+    },
+    {
+      "id": 22,
+      "name": "ambient-ruby-named-validation-stays-narrow",
+      "prompt": "A bounded Ruby diff has been shaped and shown to the user. They reply: \"Run only this one spec example and RuboCop on the changed file, then bring it back.\" No finalization, commit, or end-to-end delivery request exists.",
+      "expected_behavior": "Select requested validation, run only the named example and changed-file lint, report their actual results, and remain in interactive shaping. Do not invoke autonomous delivery, broaden the checks, dispatch ruby-verifier or compliance-reviewer, add coverage, refactor, or prepare a commit.",
+      "eval_result": "Codex fresh-context pass (action-selection only; no repo commands executed): selected requested validation with only the named spec example and changed-file RuboCop, required their actual results when run, remained in interactive shaping, and skipped autonomous delivery, broader checks, reviewers, coverage, refactoring, and commit preparation.",
+      "files": []
     }
   ]
 }

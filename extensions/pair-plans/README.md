@@ -8,6 +8,8 @@ A focused sidebar view for `.pair-plans/` folders — the working plan docs prod
 
 `.pair-plans/` holds the roadmap and per-phase plans a `/pair` session writes as it works. These are **deliberately not committed** — they're working documents and session-handoff state, not team-facing artifacts (the PR description is the durable record). Because they stay out of your commits, they never show up in Source Control and are easy to lose track of in the file tree.
 
+The documents lead with a highlighted TL;DR and an at-a-glance map, and every named section, phase, task, and PR carries its own local TL;DR. Human reviewers can follow that scan path while agent-resume detail stays behind a descriptive expandable summary.
+
 This extension gives them a dedicated home: a **Pair Plans** view in the activity bar that surfaces the current feature's roadmap and phase plans, so they stay one click away while you pair — handy, but still uncommitted.
 
 ## What it does

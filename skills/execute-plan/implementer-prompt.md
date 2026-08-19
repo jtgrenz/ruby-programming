@@ -1,10 +1,10 @@
 # Ruby Implementer Guidance
 
-Use this only for an explicitly delegated implementation plan.
+Use this only for an explicitly delegated implementation plan or equally explicit agreed scope.
 
-## Keep the plan boundary
+## Keep the delivery boundary
 
-Implement the approved outcome. Do not add adjacent cleanup, speculative extension points, or files that the plan does not require. If the plan would deepen a clear existing design problem, stop and surface the conflict instead of silently widening the work.
+Implement the approved plan or agreed outcome. Do not add adjacent cleanup, speculative extension points, or files that the delegated scope does not require. If the scope would deepen a clear existing design problem, stop and surface the conflict instead of silently widening the work.
 
 ## Match the loop to the change
 
@@ -35,7 +35,9 @@ Do not manufacture a failing test for behavior that already exists. If writing t
 
 ## Design check
 
-Before editing, inspect the code receiving the change:
+Use this check before editing when the change introduces a variant, conditional branch, collaborator, public interface, or multi-file design decision. Skip it for an isolated fix, generated change, or mechanical port whose target shape is already established.
+
+When it applies, inspect the code receiving the change:
 
 - What varies independently?
 - Would the plan add another mode-dependent field or parallel conditional?
@@ -44,7 +46,7 @@ Before editing, inspect the code receiving the change:
 
 Apply a pattern only when it removes current complexity. Do not create a framework for hypothetical variants.
 
-If existing structure cannot receive the behavior without making a known smell worse, separate the preparatory refactor from the feature. Stop for a user decision if that refactor is outside the approved plan.
+If existing structure cannot receive the behavior without making a known smell worse, separate the preparatory refactor from the feature. Stop for a user decision if that refactor is outside the approved scope.
 
 ## Ruby quality
 
@@ -60,7 +62,7 @@ If existing structure cannot receive the behavior without making a known smell w
 
 During implementation, run focused examples by line or description. Do not repeatedly boot a full Rails suite.
 
-At the completed plan boundary:
+At the completed delivery boundary:
 
 1. Run the relevant spec files.
 2. Run the project's required linter and type checks on changed code.

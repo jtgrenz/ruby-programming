@@ -2,7 +2,7 @@
 
 Ruby design guidance and proportional development workflows for Claude Code and Codex.
 
-The package separates collaborative shaping from autonomous delivery: pairing makes one bounded edit and stops for review; explicit plan execution owns TDD and completion checks.
+The package separates collaborative shaping from completion and autonomous delivery: pairing makes one bounded edit and stops for review; explicit finalization owns completion checks, while delegated plan execution owns proportional TDD and end-to-end delivery.
 
 ## Installation
 
@@ -56,7 +56,7 @@ Start a new Claude Code session or Codex thread. You should see:
 
 | Skill | Type | Invoke |
 |-------|------|--------|
-| `ruby-programming` | Ambient | Loads for Ruby work and selects shaping, delivery, or review |
+| `ruby-programming` | Ambient | Selects shaping, requested validation, completion, autonomous delivery, or read-only review |
 | `brainstorm` | Invokeable | Claude: `/ruby-programming:brainstorm`; Codex: `$ruby-programming:brainstorm` |
 | `execute-plan` | Invokeable | Claude: `/ruby-programming:execute-plan`; Codex: `$ruby-programming:execute-plan` |
 | `ruby-review` | Invokeable | Claude: `/ruby-programming:ruby-review`; Codex: `$ruby-programming:ruby-review` |
@@ -81,32 +81,36 @@ All terms are explained with parenthetical definitions on first use — the skil
 
 ### Quality Checklist
 
-A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier agent during execute-plan, and by ruby-review for PR feedback.
+A structured audit covering naming, method structure, object design, Sorbet types, error handling, testing patterns, and design smells. Used by the ruby-verifier for substantial completion audits, and by ruby-review for PR feedback.
 
 ### Proportional workflow
 
 - **Pairing/shaping:** make the requested edit, inspect the diff, and stop for direction.
+- **Requested validation:** run only the proof the user asks for, then return to shaping.
+- **Completion:** after explicit finalization, run relevant tests and required lint/types; add a fresh verifier only when the Ruby diff is substantial or cross-cutting.
 - **Behavior delivery:** use a focused failing example and the smallest coherent implementation.
 - **Mechanical work:** establish coverage for the behavior being preserved, then make the known change directly; do not force a failing test for existing behavior.
-- **Verification:** review every written plan once, then run focused checks while working and one Ruby verifier pass on the stable implementation before commit.
+- **Verification:** show plan and code direction early, avoid repeating valid gates, and run broader suites only when policy or cross-cutting risk requires them.
 
 ### Preparatory Refactoring
 
-When existing code doesn't have the seams to receive new behavior cleanly, the design check identifies this and triggers a refactoring-first approach: restructure in a separate commit (zero behavior change, all tests green), then build the new behavior against the clean structure. Signals include scattered related methods in a bloated host class, repeated conditionals on the same discriminator, and painful test setup from coupling. Based on Feathers (Working Effectively with Legacy Code), Fowler (Refactoring), and Beck ("make the change easy, then make the easy change").
+When existing code doesn't have the seams to receive new behavior cleanly, the design check identifies this and triggers a refactoring-first approach: restructure in a separate zero-behavior-change diff, run the relevant checks at its coherent boundary, then build the new behavior against the clean structure. Commit only when authorized. Signals include scattered related methods in a bloated host class, repeated conditionals on the same discriminator, and painful test setup from coupling. Based on Feathers (Working Effectively with Legacy Code), Fowler (Refactoring), and Beck ("make the change easy, then make the easy change").
 
 ## How the skills compose
 
-- **`ruby-programming`** (ambient) chooses collaborative shaping, autonomous delivery, or read-only review before applying Ruby guidance
+- **`ruby-programming`** (ambient) chooses shaping, requested validation, completion, autonomous delivery, or read-only review before applying Ruby guidance
 - **`brainstorm`** wraps `superpowers:brainstorming` with design shape analysis, threshold gates, and preparatory refactoring assessment
-- **`execute-plan`** reviews an unreviewed plan before execution, then completes it with proportional TDD and one final Ruby and plan-compliance review
+- **`execute-plan`** enforces plan review plus post-review user approval before execution, then completes delegated scope with proportional TDD, risk-based Ruby verification, and one plan-compliance review
 - **`ruby-review`** does a Ruby design pass (shapes, connascence, SOLID, and missed preparatory refactoring) alongside the host's general code review
-- **`pair`** presents bounded shaping diffs early, reviews explicit plans once, and runs Ruby verification only after direction stabilizes and before commit
+- **`pair`** presents bounded shaping diffs early, keeps named validation focused, and opens completion checks only after an explicit finalize or commit request
 
 All skills work standalone if superpowers isn't installed — they have fallback paths.
 
 ## Pair Plans extension (VS Code / Cursor)
 
-When explicitly asked for a phased roadmap or durable handoff, `pair` writes working docs into an uncommitted `.pair-plans/` folder. The companion **Pair Plans** extension gives those files a dedicated sidebar view.
+When explicitly asked for an implementation plan, phased roadmap, or durable handoff, `pair` writes working docs into an uncommitted `.pair-plans/` folder. The companion **Pair Plans** extension gives those files a dedicated sidebar view.
+
+Pair roadmaps are skimmable by default: each starts with a highlighted document TL;DR and an at-a-glance map of every phase, task, PR, and named subsection below it. Every named section and work unit has its own local TL;DR; resume-only detail can live behind a descriptive expandable summary.
 
 It lives in [`extensions/pair-plans/`](extensions/pair-plans/). Grab the `.vsix` from the [Releases page](https://github.com/jtgrenz/ruby-programming/releases) and install it (`cursor --install-extension` / `code --install-extension`), or see the [extension README](extensions/pair-plans/README.md) for the full rundown.
 
