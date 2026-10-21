@@ -37,9 +37,11 @@ Use when the user delegates remaining implementation for an unimplemented or par
 
 Classify the work:
 
-- **Behavior discovery:** Write a focused failing example, then the smallest coherent implementation. Refactor only after the contract is green.
+- **Behavior discovery:** Use an existing focused example when it already expresses the missing contract; otherwise write one. Confirm the expected failure, then write the smallest coherent implementation. Refactor only after the contract is green.
 - **Known design:** Write the validated target shape directly. Do not re-derive it through temporary strings, hashes, or conditionals.
 - **Structural or mechanical change:** Use relevant existing coverage when it protects the observable contract. Otherwise, add a focused characterization test of current behavior and confirm it passes before the refactor. Do not manufacture a failing test for behavior that already exists.
+
+Input combinations do not earn separate examples unless they protect a distinct production decision, boundary, or failure. Put coverage at the owning layer; do not duplicate matrices across layers or pull adjacent backlog gaps into scope.
 
 Run focused checks while implementing and relevant project checks once at completion. Run broader suites only when project policy or cross-cutting risk requires them. Run `ruby-verifier` once for a substantial or cross-cutting stable diff; add one compliance review when a written plan governs the work. Reuse each pass until its input changes materially.
 

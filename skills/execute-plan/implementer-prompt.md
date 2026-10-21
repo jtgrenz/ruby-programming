@@ -10,11 +10,13 @@ Implement the approved plan or agreed outcome. Do not add adjacent cleanup, spec
 
 ### Behavior change
 
-1. Write one focused example that expresses the missing behavior.
+1. Find an existing focused example that expresses the missing behavior, or write one when none does.
 2. Run it and confirm the expected failure.
 3. Write the smallest coherent implementation that fits existing code and types.
 4. Run the focused example.
 5. Refactor only the code touched by that behavior.
+
+Input combinations do not earn separate examples unless they protect a distinct production decision, boundary, or failure. Put coverage at the owning layer; do not duplicate matrices across layers or pull adjacent backlog gaps into scope.
 
 Green means production-worthy code for the current contract. Do not deliberately use a string instead of an established enum, a hash instead of an established value object, or a hardcoded branch that will be replaced immediately. That ceremony adds work without producing information.
 

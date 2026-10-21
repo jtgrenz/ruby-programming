@@ -30,9 +30,11 @@ Use only when the user delegates remaining implementation end to end: implement 
 
 Classify other work before editing:
 
-- Behavior change: write a focused failing example, then the smallest coherent implementation.
+- Behavior change: use an existing focused example when it already expresses the missing contract; otherwise write one. Confirm the expected failure, then write the smallest coherent implementation.
 - Structural or mechanical change: establish relevant coverage, then edit directly.
 - Validated design or port: write the known target shape directly.
+
+Input combinations do not earn separate examples unless they protect a distinct production decision, boundary, or failure. Put coverage at the owning layer; do not duplicate matrices across layers or pull adjacent backlog gaps into scope.
 
 Fit established types and conventions on the first green pass. Do not deliberately introduce a naive representation merely to replace it immediately. Refactor only the requested scope. Run focused checks while working, then relevant project-required tests, lint, and types once at the completion boundary. Run broader suites only when project policy or cross-cutting risk requires them. Run one Ruby verifier pass for a substantial or cross-cutting stable diff; plan-backed work also gets one compliance review.
 
