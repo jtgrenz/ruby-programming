@@ -20,17 +20,21 @@ Determine the review target from the user's request:
 
 **URL detection is critical.** If the argument contains `github.com` and `/pull/`, always treat it as a remote PR review — never fall through to local changes.
 
+Apply the quality checklist's evidence standard to design and quality findings alike. Treat pasted code as partial context; verify surrounding code when available and omit claims whose premises are not established.
+
 ### Step 2: Design Pass (do this FIRST, before the structural scan)
 
 Read these references once:
 - `../ruby-programming/references/design-vocabulary.md`
 - `../ruby-programming/references/preparatory-refactoring.md`
+- `../ruby-programming/references/quality-checklist.md`
 
 For shapes, list the `## Shape` headings in `../ruby-programming/references/design-shapes.md`, then read only the shapes whose triggers plausibly match the diff. Do not load the whole file up front.
 
 Then review the diff with design eyes:
+- **Readability**: Can the entry point tell the story through named domain steps? Check for independent validation rules buried in a long method, mixed abstraction levels, and related values passed as positional tuples. Report the concrete reading burden even when behavior is correct; prefer meaningful method extraction and named records over extra classes or layers. Line count alone is not a finding. Leave cohesive, readable methods alone; alternative arrangements and speculative optimizations are not findings.
 - **Shape triggers**: Check all documented shapes against the changed code. Name any that match.
-- **Threshold gates**: For each shape found, check if the threshold is crossed. Don't recommend patterns that aren't warranted.
+- **Threshold gates**: Check each matching shape's gate against evidence in the code. Recommend its pattern only when the gate is crossed. For an explicit design question, explain a relevant failed gate and its trip wire when useful. For an ordinary review, omit rejected shapes and hypothetical future changes; report the current problems.
 - **Forward question**: "If a new variant appears, how many files change?" for any polymorphism-adjacent code.
 - **Connascence**: Name the coupling type the change creates or eliminates.
 - **SOLID**: Cite relevant principles when they apply.
@@ -45,20 +49,24 @@ Then review the diff with design eyes:
 
 ### Step 3: Run Ruby Verifier
 
-After completing the design pass, run the shared verifier for mechanical quality checks: `../ruby-programming/agents/ruby-verifier.md`. Dispatch it as a fresh subagent when the runtime supports one; otherwise apply that prompt directly. Do not restate its rules or output format here — a second copy drifts from the original.
+After completing the design pass, run the shared verifier for the remaining quality-checklist checks: `../ruby-programming/agents/ruby-verifier.md`. Dispatch it as a fresh subagent when the runtime supports one; otherwise apply that prompt directly. Do not restate its rules or output format here — a second copy drifts from the original.
 
 Hand it the exact diff plus the changed file paths. For an explicit full-file review, label the paths as full-file audit targets instead. For a remote PR, paste the diff text: the working tree may hold unrelated changes, so local paths would resolve to the wrong content. Checking the PR out first (`gh pr checkout <number> --repo <owner>/<repo>`, which needs a clean tree) is the alternative.
 
 ### Step 4: Present Findings
 
+An ordinary code review, whether local, pasted, or a PR, contains findings only. Each finding gives the concrete problem, the relevant gate evidence, and one proportionate recommendation in one compact paragraph. Include a separate design-analysis section only when the user explicitly asks for design reasoning or a comparison.
+
 Combine the design and quality findings. Organize by severity:
 
 1. **Design concerns** (from your design pass — shapes, connascence, SOLID) — architectural issues
-2. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — mechanical issues
+2. **Quality findings** (from the ruby verifier — naming, method structure, testing patterns) — include concrete readability problems as well as mechanical issues
 
 Lead with actionable findings. Omit passing checklist items and process narration. Keep each finding to one compact paragraph unless the user asks for a deeper design explanation.
 
-When useful, remind the user to run the host's general review command (`/code-review` in Claude Code or `/review` in Codex) for a separate structural bug scan.
+Mention the host's general review command (`/code-review` in Claude Code or `/review` in Codex) only when the user asks for a bug scan.
+
+Before sending an ordinary review, remove passing checks, rejected-pattern explanations, speculative improvements, and process narration. Keep only supported findings and the smallest fixes; end with the last finding. A direct answer to an explicit design question may explain why no change is warranted.
 
 When writing for a GitHub PR, wrap the design analysis in a collapsible block:
 ```markdown

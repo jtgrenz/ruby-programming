@@ -160,7 +160,7 @@ During refactoring:
 - Check: is each module deep (absorbing complexity) or shallow (adding indirection)?
 
 During **Code Review**:
-- Design pass BEFORE syntax pass
-- Name the shapes you see in the diff
-- For each shape, provide your recommended pattern with rationale
-- Ask the forward question: "If a new variant appears, how many files change?"
+- Do the design pass before the syntax pass
+- Check matching shapes against their threshold gates before recommending a pattern
+- Use the forward question to assess the cost of the next variant
+- Follow `ruby-review` for presentation: ordinary reviews contain supported findings only. Include broader design analysis when the user explicitly asks for it.

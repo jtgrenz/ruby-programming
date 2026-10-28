@@ -38,4 +38,4 @@ All three file versions must match. The Claude marketplace reads `marketplace.js
 
 ## Where evals live
 
-Evals live at `skills/<name>/evals/evals.json`. `brainstorm` and `execute-plan` have no directory of their own — their cases sit in `skills/ruby-programming/evals/evals.json` (ids 5-6 cover brainstorm, ids 7-10 cover execute-plan) because they exercise the shared design references rather than anything skill-local. `ruby-review` has its own file for the two cases unique to it, and its `notes` field records where its shape coverage lives.
+Evals live at `skills/<name>/evals/evals.json`. `brainstorm` and `execute-plan` have no directory of their own — their cases sit in `skills/ruby-programming/evals/evals.json` (ids 5-6 cover brainstorm, ids 7-10 cover execute-plan) because they exercise the shared design references rather than anything skill-local. `ruby-review` has its own file for the cases unique to it, and its `notes` field records where its shape coverage lives.

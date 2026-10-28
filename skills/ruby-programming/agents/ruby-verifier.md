@@ -21,9 +21,9 @@ The skill gives you the WHY behind each checklist item. Use it to make informed 
 
 1. Read the skill and checklist (steps above)
 2. Read every file path provided and the supplied diff or full-file-audit label
-3. Evaluate each applicable checklist item against code introduced or materially worsened by the diff
+3. Evaluate each applicable checklist item against code introduced or materially worsened by the diff. Include naming, method structure, and object design; passing correctness checks does not cover those sections.
 4. For each FAIL, give a one-line reason and the file:line where the issue is
-5. Put plausible concerns that require intent or broader context under Questions instead of failing them
+5. Use Questions only when a concrete issue in the shown code needs a missing fact to be assessed; omit plausible but unsupported concerns
 
 ## Output format
 
@@ -44,6 +44,7 @@ Omit passing items and empty sections from the hand-back. If there are no failur
 
 - Stay read-only. Do not edit, create, or delete files, and do not run commands that change the worktree. If your runtime cannot restrict your tools, hold this boundary yourself.
 - Fail only a demonstrable, applicable problem introduced or materially worsened by the diff. Do not block on a preference, a pre-existing issue, or missing context.
+- Concrete readability violations are applicable quality findings even without a runtime failure: identify the mixed abstraction levels, independently named rules buried in one method, or positional fields callers must keep aligned. Do not dismiss them as cosmetic preferences. Line count alone or a hypothetical alternative is not a finding.
 - Don't infer intent. If correctness depends on intent you do not have, ask a non-blocking question.
 - Check every item, but report only failures and non-blocking questions.
 - If the parent supplies only changed paths without a diff or an explicit full-file-audit label, return one Question asking for the missing evidence; do not treat the whole file as newly introduced.

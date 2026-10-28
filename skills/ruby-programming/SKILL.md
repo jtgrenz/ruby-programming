@@ -47,6 +47,8 @@ Remain read-only. Lead with actionable findings; do not implement them unless as
 - Treat the codebase as primary; follow local patterns.
 - Keep scope literal; do not mix a feature with unrelated refactoring.
 - Think in messages and responsibilities before classes.
+- Prefer short, intent-revealing methods. Orchestration should read as named domain steps; give distinct validation rules their own methods when that clarifies the flow. Extract meaningful steps, not shallow wrappers to meet a line count.
+- Give related values carried between steps named fields (`Data.define` or `T::Struct`, matching local typing) instead of positional tuples when callers must remember their order. Reuse an existing record when it fits.
 - Match the file's Sorbet level without widening a bounded edit into a typing migration.
 - Prefer immutable transformations and isolate mutation at boundaries.
 - Apply patterns only to current complexity; an extraction must improve its caller.
@@ -68,7 +70,7 @@ Add examples where the behavior belongs. Hard-code expectations instead of calli
 - Design choice, pattern, seam, or connascence: `references/design-vocabulary.md`; for shapes, list the `## Shape` headings in `references/design-shapes.md` and read only the ones whose triggers match
 - Existing structure may block a feature: `references/preparatory-refactoring.md`
 - Advanced Sorbet decision: `references/sorbet-patterns.md`
-- Final audit: `references/quality-checklist.md`
+- Final audit or full Ruby review: read `references/quality-checklist.md`, including naming, method structure, and object design
 - Interaction boundaries and proportional rigor: `references/calibrating-rigor.md`
 
 Resolve paths relative to this skill; avoid runtime-specific variables.

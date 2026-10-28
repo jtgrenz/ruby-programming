@@ -2,6 +2,14 @@
 
 Read this for a final audit at a completion boundary, and when reviewing Ruby code in PRs.
 
+## Apply the checklist
+
+These items prompt investigation, not automatic rewrites. Keep a review finding only when the shown code establishes the problem, its current consequence or reading burden, and a smaller, clearer fix. A different organization or shorter spelling is not a benefit by itself.
+
+Missing callers, wrappers, schemas, and surrounding methods are unknown in an excerpt. Inspect them when available. Otherwise omit findings that depend on their absence; a conditional suggestion to delete a possibly unused method is still an unsupported finding. Ask a question only when a concrete issue in the shown code needs that missing fact to be assessed.
+
+For a cohesive task, start with named steps in its existing class. A new behavior object needs a demonstrated separate responsibility or reuse boundary; a long method alone does not establish either. A named record for positional fields does not require moving behavior into another class.
+
 ## Naming
 
 - [ ] Every name reveals intent without needing a comment
@@ -18,8 +26,8 @@ Read this for a final audit at a completion boundary, and when reviewing Ruby co
 - [ ] No boolean params that fork execution paths (ok for modifiers like `validate:`, filters like `include_inactive:`, guards like `force:`)
 - [ ] Command-query separation (methods do OR answer, never both)
 - [ ] No side effects hidden behind misleading names
-- [ ] Methods ~10-15 lines; longer = extract
-- [ ] Keyword arguments for 2+ parameters
+- [ ] Each method has one coherent responsibility; extract named steps when they make the caller easier to understand
+- [ ] Argument roles are clear at the call site; use keywords when positional arguments obscure their meaning
 - [ ] Transformations use functional methods (`map`/`select`/`reject`/`filter_map`/`transform_values`/`each_with_object`) — no imperative loops building arrays via `<<` or mutating accumulators
 - [ ] No in-place mutation of arguments or shared/constant state (copy-on-write; defensive copy at trust boundaries)
 
@@ -86,7 +94,7 @@ Read this for a final audit at a completion boundary, and when reviewing Ruby co
 | Testing outgoing queries | Remove test — receiver's job |
 | Boolean parameter that forks execution | Split into two well-named methods |
 | Hardcoded class name in method | Inject the dependency |
-| 3+ positional args | Keyword arguments |
+| Positional arguments with ambiguous roles | Use keyword arguments |
 | `rescue Exception` | `rescue StandardError` |
 | Exceptions for flow control | Use conditionals |
 | Guard/assertion on non-nilable Sorbet type | Remove — Sorbet already proves it |
@@ -127,7 +135,6 @@ Flag these if observed. **Do not recommend specific patterns** — the parent ag
 | Intermediate variable with a name that just restates the right-hand side (`result = calculate_result`) | Inline it |
 | Class with one public method that could be a lambda or method object | Downgrade to lambda unless it has meaningful state |
 | Method deletable because its caller could do the work inline | Delete it |
-| Method longer than its caller | The abstraction may be at the wrong level — the caller is the simple part |
 | Extracted method that doesn't survive the deletion test (inlining it doesn't make the caller harder to read) | Inline it — the extraction adds indirection without absorbing complexity |
 
 ## Architecture (for larger changes)
